@@ -347,9 +347,12 @@ abstract class Classifier {
             void onResult(Element parent, Element result, Evaluator evaluator) {
                 if (currentFoundGroup.containsKey(evaluator)) {
                     currentFoundGroup.clear();
+                }
+                if (currentFoundGroup.isEmpty()) {
                     elementGroups.onShouldNewGroup(parent, result, evaluator);
                 } else {
                     elementGroups.onFound(result, evaluator);
+
                 }
                 currentFoundGroup.put(evaluator, PRESENT);
             }
