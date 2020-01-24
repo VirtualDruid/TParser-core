@@ -32,6 +32,7 @@ abstract class Classifier {
             }
             elementGroups.onEndOfParent();
         }
+        elementGroups.onParentsAllVisited(parents);
         return elementGroups;
     }
 
@@ -345,9 +346,12 @@ abstract class Classifier {
             }
 
             void onResult(Element parent, Element result, Evaluator evaluator) {
+                //do not use containsKey to check should new group or not
+                //the first should also be a new group and it does not have any key yet
                 if (currentFoundGroup.containsKey(evaluator)) {
                     currentFoundGroup.clear();
                 }
+                //the empty map could be just the first or a new group
                 if (currentFoundGroup.isEmpty()) {
                     elementGroups.onShouldNewGroup(parent, result, evaluator);
                 } else {

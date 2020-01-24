@@ -1,6 +1,7 @@
 package core;
 
 import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 import org.jsoup.select.Evaluator;
 
 import java.util.ArrayList;
@@ -9,8 +10,11 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * model class represent sets of elements
+ * model class represent ordered sets of elements
  * a single group has types each with only a element of that type,which classified by evaluator
+ * <p>
+ * its properties can be retrieve by index on each evaluator(type) key
+ * <p>
  * a group is also as an item in an array for further extraction if it's under an array
  * every element under a group is nullable by default, unless it has "x-required" attr
  *
@@ -44,27 +48,48 @@ class ElementGroups {
         }
     }
 
+    private void fillPreviousGroupsWithNull(Element parent) {
+        //first group will never execute the loop (empty entries)
+        for (Map.Entry<Evaluator, ArrayList<Element>> entry : classified.entrySet()) {
+            //fill the group by adding missing elements as null
+            while (entry.getValue().size() < groupsFound) {
+                entry.getValue().add(NullWrapper.nullRepresent(parent));
+            }
+        }
+    }
+
     /**
-     * on found first type of element in a group
-     * will create a new group and finish the previous
+     * all the parents are processed
+     * finish the last group
+     */
+    void onParentsAllVisited(Elements parents) {
+        Element lastParent = parents.last();
+        fillPreviousGroupsWithNull(lastParent);
+    }
+
+    /**
+     * found first type of element in a group
+     * create a new group and finish the previous
+     *
      * @see Classifier
      */
     void onShouldNewGroup(Element parent, Element element, Evaluator eval) {
-        //first group will never execute the loop (empty entries)
-        for (Map.Entry<Evaluator, ArrayList<Element>> entry : classified.entrySet()) {
-            List<Element> classifiedElements = entry.getValue();
-            //fill the group by adding missing elements as null
-            if (classifiedElements.size() < groupsFound) {
-                classifiedElements.add(NullWrapper.nullRepresent(parent));
-            }
-        }
+//        //first group will never execute the loop (empty entries)
+//        for (Map.Entry<Evaluator, ArrayList<Element>> entry : classified.entrySet()) {
+//            List<Element> classifiedElements = entry.getValue();
+//            //fill the group by adding missing elements as null
+//            if (classifiedElements.size() < groupsFound) {
+//                classifiedElements.add(NullWrapper.nullRepresent(parent));
+//            }
+//        }
+        fillPreviousGroupsWithNull(parent);
         classified.get(eval).add(element);
         groupsFound++;
         currentSubArraySize++;
     }
 
     /**
-     *on found non-first type element in a group
+     * on found non-first type element in a group
      */
     void onFound(Element element, Evaluator eval) {
         classified.get(eval).add(element);
@@ -88,10 +113,10 @@ class ElementGroups {
 
 
     /**
-     * get elements of a type
+     * get elements of a type inside each group
      *
      * @param classificationKey the evaluator represent the type
-     * @return elements of the type
+     * @return properties of the same type, in those' owner groups order
      * @see ElementVisitor
      */
     ArrayList<Element> getClassifiedElements(Evaluator classificationKey) {
