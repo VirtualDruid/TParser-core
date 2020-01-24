@@ -1,0 +1,20 @@
+plugins {
+    id 'java-library'
+    id 'maven'
+}
+
+group 'io.virtualdruid'
+version '1.0'
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+    api group: 'org.jsoup', name: 'jsoup', version: '1.12.1'
+    api group: 'com.github.tony19', name: 'named-regexp', version: '0.2.5'
+}
+
+
