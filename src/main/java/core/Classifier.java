@@ -16,6 +16,7 @@ import java.util.List;
  */
 abstract class Classifier {
     private static final int CHILDREN_DEPTH = 1;
+    private static final int SKIP_SEARCH    = 0;
     List<Evaluator> classifications = new ArrayList<>();
 
     /*---instance method---*/
@@ -58,9 +59,9 @@ abstract class Classifier {
     }
 
     protected static class DepthFinder implements NodeFilter {
-        private static final int NOT_FOUND_OR_NOT_LIMIT = -1;
+        private static final int NOT_FOUND = -1;
 
-        private int       foundDepth = NOT_FOUND_OR_NOT_LIMIT;
+        private int       foundDepth = NOT_FOUND;
         private Element   root;
         private Evaluator evaluator;
 
@@ -86,12 +87,12 @@ abstract class Classifier {
         }
 
         boolean hasFound() {
-            return foundDepth != NOT_FOUND_OR_NOT_LIMIT;
+            return foundDepth != NOT_FOUND;
         }
 
         int find(Element root) {
             //reset
-            foundDepth = NOT_FOUND_OR_NOT_LIMIT;
+            foundDepth = NOT_FOUND;
             this.root = root;
             root.filter(this);
             return foundDepth;
@@ -320,8 +321,10 @@ abstract class Classifier {
             }
             if (deepest == notFound) {
                 //nothing found
-                //not even need to search
-                deepest = 0;
+                //search children or skip
+                deepest = (subtreeEvaluators.size() == classifications.size()) ?
+                        SKIP_SEARCH : //all are subtree, nothing to search
+                        CHILDREN_DEPTH; //some are children
             }
             return deepest;
         }
