@@ -18,9 +18,11 @@ public class Converters {
     private static final Pattern PATTERN_HTML_LINE_BREAK_TAG  = Pattern.compile("<br>");
     //<br\/> -> <br/>
     private static final Pattern PATTERN_XHTML_LINE_BREAK_TAG = Pattern.compile("<br\\/>");
+    //<br/?>
+    private static final Pattern PATTERN_ANY_LINE_BREAK_TAG   = Pattern.compile("<br\\/?>");
     private static final String  LINE_BREAK                   = "\n";
 
-    /*-- built-in --*/
+    /*--  built-in  --*/
     public static final TextConverter<String>  toString  = (text) -> text;
     public static final TextConverter<Integer> toInteger = Integer::valueOf;
     public static final TextConverter<Long>    toLong    = Long::valueOf;
@@ -30,9 +32,10 @@ public class Converters {
     public static final TextConverter<Double>  toDouble  = Double::valueOf;
 
     public static final TextConverter<Boolean> toBoolean = Boolean::valueOf;
-    /*-- built-in --*/
+    /*--  built-in  --*/
 
     /*-- additional --*/
+    public static final TextConverter<String>     replaceAnyLineBreak   = (text) -> PATTERN_ANY_LINE_BREAK_TAG.matcher(text).replaceAll(LINE_BREAK);
     public static final TextConverter<String>     htmlReplaceLinebreak  = (text) -> PATTERN_HTML_LINE_BREAK_TAG.matcher(text).replaceAll(LINE_BREAK);
     public static final TextConverter<String>     xhtmlReplaceLinebreak = (text) -> PATTERN_XHTML_LINE_BREAK_TAG.matcher(text).replaceAll(LINE_BREAK);
     public static final TextConverter<String>     discardEmpty          = (text) -> text.isEmpty() ? null : text;
