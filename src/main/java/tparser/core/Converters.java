@@ -42,6 +42,7 @@ public class Converters {
     public static final TextConverter<BigInteger> toBigInteger          = BigInteger::new;
     public static final TextConverter<BigDecimal> toBigDecimal          = BigDecimal::new;
     public static final TextConverter<byte[]>     decodeBase64          = Base64.getDecoder()::decode;
+    public static final TextConverter<Boolean>    exists                = Objects::nonNull;
     /*-- additional --*/
 
     /**
