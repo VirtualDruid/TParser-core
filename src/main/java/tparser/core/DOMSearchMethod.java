@@ -3,9 +3,10 @@ package tparser.core;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Evaluator;
 
-interface DOMSearchMethod {
-
-    void select(Element root, ResultCollector observer);
+class DOMSearchMethod {
+    private DOMSearchMethod(){}
+//
+//    void select(Element root, ResultCollector observer);
 
     interface FirstSelector {
         Element select(Element root, Evaluator evaluator);
@@ -18,10 +19,10 @@ interface DOMSearchMethod {
         CHILDREN, SUBTREE_EXCLUDE_ROOT
     }
 
-    interface ResultCollector {
-        void onResult(Element result, Evaluator evaluator);
-
-    }
+//    interface ResultCollector {
+//        void onResult(Element result, Evaluator evaluator);
+//
+//    }
 
     interface ExistenceCheck {
         void check(Element subjectToCheck, Evaluator evaluator) throws HtmlParseException.Existence;
@@ -54,7 +55,7 @@ interface DOMSearchMethod {
         class Required implements ExistenceCheck {
             String customMsg;
 
-            public Required(String customMsg) {
+            Required(String customMsg) {
                 this.customMsg = customMsg;
             }
 
@@ -72,7 +73,7 @@ interface DOMSearchMethod {
         class FailIfFound implements ExistenceCheck {
             String customMsg;
 
-            public FailIfFound(String customMsg) {
+            FailIfFound(String customMsg) {
                 this.customMsg = customMsg;
             }
 
