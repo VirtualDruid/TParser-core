@@ -5,7 +5,7 @@ import org.jsoup.select.Evaluator;
 
 import java.util.LinkedHashSet;
 
-abstract class StructPlaceHolderVisitor extends StepNode {
+public abstract class StructPlaceHolderVisitor extends StepNode {
     private static final String                ATTR_NAME  = "name";
     final                String                name;
     protected            Classifier            classifier;
@@ -41,11 +41,11 @@ abstract class StructPlaceHolderVisitor extends StepNode {
         onAddProperty(property, dupe);
     }
 
-    static boolean isStructure(String tag) {
+    public static boolean isStructure(String tag) {
         return ObjectVisitor.TAG.equals(tag) || ArrayVisitor.TAG.equals(tag);
     }
 
-    static boolean isDirectChildOfStructure(Element element) {
+    public static boolean isDirectChildOfStructure(Element element) {
         return isStructure(element.parent() == null ? null : element.parent().tagName());
     }
 
