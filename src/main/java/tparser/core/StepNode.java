@@ -43,7 +43,7 @@ public abstract class StepNode extends Element {
      *
      * @param node step node instance
      */
-    void addChild(StepNode node) {
+    public void addChild(StepNode node) {
         addChildren(node);
     }
 
