@@ -11,7 +11,7 @@ import org.jsoup.nodes.Element;
  */
 public abstract class StepNode extends Element {
 
-    StepNode(String tagName) {
+    public StepNode(String tagName) {
         super(tagName);
     }
 
