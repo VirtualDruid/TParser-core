@@ -7,16 +7,19 @@ import java.util.LinkedHashSet;
 
 public abstract class StructPlaceHolderVisitor extends StepNode {
     private static final String                ATTR_NAME  = "name";
+    private static final String                EMPTY      = "";
     final                String                name;
     protected            Classifier            classifier;
     protected            LinkedHashSet<String> properties = new LinkedHashSet<>();
 
 
-    public StructPlaceHolderVisitor(String tagName, AttributeContainer container) {
+    protected StructPlaceHolderVisitor(String tagName, AttributeContainer container) {
+        this(tagName, container.hasAttr(ATTR_NAME) ? container.getAttr(ATTR_NAME) : EMPTY);
+    }
+
+    protected StructPlaceHolderVisitor(String tagName, String name) {
         super(tagName);
-        this.name = container.hasAttr(ATTR_NAME) ?
-                container.getAttr(ATTR_NAME) :
-                null;
+        this.name = name;
     }
 
     abstract void onAddProperty(String property, boolean dupe);

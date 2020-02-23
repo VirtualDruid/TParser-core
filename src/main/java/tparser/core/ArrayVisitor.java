@@ -18,6 +18,8 @@ public class ArrayVisitor extends StructPlaceHolderVisitor {
     private static final Evaluator NON_STRUCTURE_CHILDREN = QueryParser.parse(":not(json-array):not(json-object)");
     static final         String    TAG                    = "json-array";
 
+    private AttributeContainer container;
+
 //    private static Elements selectNonStructChildren(Element root) {
 //        return SelectHelper.selectInChildren(root, NON_STRUCTURE_CHILDREN);
 //    }
@@ -35,23 +37,34 @@ public class ArrayVisitor extends StructPlaceHolderVisitor {
         return count;
     }
 
+
+//    public ArrayVisitor(AttributeContainer container, int nonStructureDirectChildren) {
+//        super(TAG, container);
+//        this.container = container;
+////        int depthLimit = SearchMethodHelper.arrayDepthLimit(container);
+//        classifier = (nonStructureDirectChildren == 1) ?
+//                new Classifier.SingleTypeArray(container) :
+//                new Classifier.MultiTypeArray(container);
+//
+//    }
+
     /**
      * source independent constructor
+     * should call onBuilderExiting to init (actual) classifier
      *
-     * @param container                  attribute set
-     * @param nonStructureDirectChildren number of direct children that are not a structure node for choosing classify strategy
+     * @param container attribute set
      */
-    public ArrayVisitor(AttributeContainer container, int nonStructureDirectChildren) {
+    public ArrayVisitor(AttributeContainer container) {
         super(TAG, container);
-//        int depthLimit = SearchMethodHelper.arrayDepthLimit(container);
-        classifier = (nonStructureDirectChildren == 1) ?
-                new Classifier.SingleTypeArray(container) :
-                new Classifier.MultiTypeArray(container);
-
+        this.container = container;
+        this.classifier = new ClassifierTemp();
     }
 
     ArrayVisitor(Element template) {
-        this(CollectionHelper.asAttributeContainer(template), countNonStructChildren(template));
+        this(CollectionHelper.asAttributeContainer(template));
+        classifier = (countNonStructChildren(template) == 1) ?
+                new Classifier.SingleTypeArray(container) :
+                new Classifier.MultiTypeArray(container);
     }
 
     @Override
@@ -97,6 +110,9 @@ public class ArrayVisitor extends StructPlaceHolderVisitor {
 
     @Override
     public void onBuilderExiting() {
+        if (classifier instanceof ClassifierTemp) {
+            classifier = ((ClassifierTemp) classifier).toArrayClassifier(container);
+        }
         classifier.finish();
     }
 
@@ -164,5 +180,34 @@ public class ArrayVisitor extends StructPlaceHolderVisitor {
     @Override
     public String toString() {
         return String.format("ARRAY NAME:%s GROUP:%s", name, StringUtil.join(classifier.classifications.iterator(), " / "));
+    }
+
+    //array classifier's lazy-construction state
+    private static final class ClassifierTemp extends Classifier {
+        private List<DOMSearchMethod.Scope> scopes              = new ArrayList<>();
+        private int                         classificationCount = 0;
+
+        @Override
+        final void addClassification(Evaluator evaluator, DOMSearchMethod.Scope scope) {
+            classifications.add(evaluator);
+            scopes.add(scope);
+            classificationCount++;
+        }
+
+        @Override
+        final protected Finder createFinder(ElementGroups groups, Elements parents) {
+            //no usage
+            return null;
+        }
+
+        final Classifier toArrayClassifier(AttributeContainer container) {
+            Classifier classifier = (classificationCount == 1) ?
+                    new Classifier.SingleTypeArray(container) :
+                    new Classifier.MultiTypeArray(container);
+            for (int i = 0, size = classifications.size(); i < size; i++) {
+                classifier.addClassification(classifications.get(i), scopes.get(i));
+            }
+            return classifier;
+        }
     }
 }

@@ -5,9 +5,6 @@ import org.jsoup.nodes.Element;
 /**
  * abstract functional node
  *
- * @see ElementVisitor
- * @see ArrayVisitor
- * @see ObjectVisitor
  */
 public abstract class StepNode extends Element {
 
@@ -33,8 +30,6 @@ public abstract class StepNode extends Element {
 
     /**
      * only called when DFT exiting the node (subtree are all visited)
-     * this is currently used to make internal List unmodifiable and readonly
-     * building without calling this is fine
      */
     public abstract void onBuilderExiting();
 
@@ -44,7 +39,7 @@ public abstract class StepNode extends Element {
      * @param node step node instance
      */
     public void addChild(StepNode node) {
-        addChildren(node);
+        appendChild(node);
     }
 
     @Override
