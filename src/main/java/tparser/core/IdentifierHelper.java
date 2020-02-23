@@ -14,13 +14,13 @@ class IdentifierHelper {
     private static final String ANNOTATION_OUTER_HTML = "*#";
     private static final String ANNOTATION_FULL_TEXT  = "'#";
 
-    // ^\s*[.*]{.*}\s*$
+    // ^\s*\[.*\]\{.*\}\s*$
     private static final Pattern PATTERN_BASIC_TEXT_IDENTIFIER = Pattern.compile("^\\s*(?<types>\\[.*\\])?\\s*\\{(?<identifier>.*)\\}\\s*$");
 
     private static final String GROUP_SELECTION_ANNOTATION = "selectionAnnotation";
 
-    // ^\s*\$?{.*}\s*$
-    private static final Pattern PATTERN_BASIC_ATTR_IDENTIFIER = Pattern.compile("^\\s*(?<selectionAnnotation>\\$?)\\s*(?<types>\\[.*\\])?\\s*\\{(?<identifier>.*)}\\s*$");
+    // ^\s*\$?\{.*\}\s*$
+    private static final Pattern PATTERN_BASIC_ATTR_IDENTIFIER = Pattern.compile("^\\s*(?<selectionAnnotation>\\$?)\\s*(?<types>\\[.*\\])?\\s*\\{(?<identifier>.*)\\}\\s*$");
 
 
     private static final String GROUP_SHOULD_FAIL_NOT_MATCH = "shouldFailNotMatch";
