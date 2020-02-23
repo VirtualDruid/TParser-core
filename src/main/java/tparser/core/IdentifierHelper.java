@@ -14,8 +14,8 @@ class IdentifierHelper {
     private static final String ANNOTATION_OUTER_HTML = "*#";
     private static final String ANNOTATION_FULL_TEXT  = "'#";
 
-    // ^\s*{.*}\s*$
-    private static final Pattern PATTERN_BASIC_TEXT_IDENTIFIER = Pattern.compile("^\\s*(?<types>\\[.*\\])?\\s*\\{(?<identifier>.*)}\\s*$");
+    // ^\s*[.*]{.*}\s*$
+    private static final Pattern PATTERN_BASIC_TEXT_IDENTIFIER = Pattern.compile("^\\s*(?<types>\\[.*\\])?\\s*\\{(?<identifier>.*)\\}\\s*$");
 
     private static final String GROUP_SELECTION_ANNOTATION = "selectionAnnotation";
 
