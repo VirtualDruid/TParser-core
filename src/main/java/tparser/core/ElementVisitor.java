@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+// TODO: 2020/2/24 support xml event based construction
 public class ElementVisitor extends StepNode {
 
     private static final String ATTR_CLASS = "class";
@@ -23,20 +24,81 @@ public class ElementVisitor extends StepNode {
     private boolean                        isDirectChildOfStructure;
     private boolean                        hasExtractions;
 
-    private void checkLevel(String identifier) {
-        if (parentStructure == null) {
-            throw new TemplateSyntaxError(
-                    String.format(
-                            "identifier declaration: %s outside %s/%s placeholder",
-                            identifier,
-                            ObjectVisitor.TAG,
-                            ArrayVisitor.TAG)
-            );
+    private PendingState state;
+
+
+    /**
+     * pre construction state
+     * call to onBuilderExiting to finish initialization
+     */
+    private class PendingState {
+        String                                                  tagName;
+        String                                                  ownText;
+        boolean                                                 isDirectChildOfStructure;
+        StructPlaceHolderVisitor                                parentPlaceholder;
+        AttributeContainer<? extends Map.Entry<String, String>> attrs;
+        TextConverterFactory                                    factory;
+
+        void ensureNotNull() {
+            ownText = ownText == null ? null : "";
+            attrs = attrs == null ? null : CollectionHelper.emptyContainer();
         }
     }
 
     /**
+     * create a pre initialization instance for event based xml parser support
+     * call to onBuilderExiting to finish init
+     */
+    @SuppressWarnings("unused")
+    public ElementVisitor(
+            String tagName,
+            boolean isDirectChildOfStructure,
+            StructPlaceHolderVisitor parentPlaceholder,
+            TextConverterFactory factory
+    ) {
+        super(tagName);
+        this.state = new PendingState();
+        state.tagName = tagName;
+        state.isDirectChildOfStructure = isDirectChildOfStructure;
+        state.parentPlaceholder = parentPlaceholder;
+        state.factory = factory;
+    }
+
+    @SuppressWarnings("unused")
+    public void setOwnText(String ownText) {
+        state.ownText = ownText;
+    }
+
+    @SuppressWarnings("unused")
+    public void setAttrs(AttributeContainer<? extends Map.Entry<String, String>> container) {
+        state.attrs = container;
+    }
+
+
+    @Override
+    public void onBuilderVisiting() {
+    }
+
+    @Override
+    public void onBuilderExiting() {
+        if (state != null) {
+            state.ensureNotNull();
+            initialize(
+                    state.tagName,
+                    state.ownText,
+                    state.isDirectChildOfStructure,
+                    state.parentPlaceholder,
+                    state.attrs,
+                    state.factory
+            );
+            state = null;
+        }
+        processors = Collections.unmodifiableList(processors);
+    }
+
+    /**
      * a purified, source independent constructor
+     * create and init a ready instance
      * <p>
      * could be used for alternative template construction
      * <p>
@@ -49,6 +111,7 @@ public class ElementVisitor extends StepNode {
      * @param attrs                    equivalent to Element#attributes
      * @param factory                  factory to create converters
      */
+    @SuppressWarnings("unused")
     public ElementVisitor(
             String tagName,
             String ownText,
@@ -157,6 +220,18 @@ public class ElementVisitor extends StepNode {
                 factory
         );
 
+    }
+
+    private void checkLevel(String identifier) {
+        if (parentStructure == null) {
+            throw new TemplateSyntaxError(
+                    String.format(
+                            "identifier declaration: %s outside %s/%s placeholder",
+                            identifier,
+                            ObjectVisitor.TAG,
+                            ArrayVisitor.TAG)
+            );
+        }
     }
 
 //    public ElementVisitor(Element selfTemplate, StructPlaceHolderVisitor parentPlaceholder, TextConverterFactory factory) {
@@ -279,14 +354,6 @@ public class ElementVisitor extends StepNode {
         state.selectionStack.pop();
     }
 
-    @Override
-    public void onBuilderVisiting() {
-    }
-
-    @Override
-    public void onBuilderExiting() {
-        processors = Collections.unmodifiableList(processors);
-    }
 
     /**
      * format this step in a readable text
