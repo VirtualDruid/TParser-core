@@ -10,7 +10,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-// TODO: 2020/2/24 support xml event based construction
 public class ElementVisitor extends StepNode {
 
     private static final String ATTR_CLASS = "class";
