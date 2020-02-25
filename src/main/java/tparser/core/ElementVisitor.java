@@ -32,15 +32,17 @@ public class ElementVisitor extends StepNode {
      */
     private class PendingState {
         String                                                  tagName;
-        String                                                  ownText;
+        String                                                  ownText = "";
         boolean                                                 isDirectChildOfStructure;
         StructPlaceHolderVisitor                                parentPlaceholder;
-        AttributeContainer<? extends Map.Entry<String, String>> attrs;
+        AttributeContainer<? extends Map.Entry<String, String>> attrs   = CollectionHelper.emptyContainer();
         TextConverterFactory                                    factory;
 
-        void ensureNotNull() {
-            ownText = ownText == null ? null : "";
-            attrs = attrs == null ? null : CollectionHelper.emptyContainer();
+        public PendingState(String tagName, boolean isDirectChildOfStructure, StructPlaceHolderVisitor parentPlaceholder, TextConverterFactory factory) {
+            this.tagName = tagName;
+            this.isDirectChildOfStructure = isDirectChildOfStructure;
+            this.parentPlaceholder = parentPlaceholder;
+            this.factory = factory;
         }
     }
 
@@ -53,14 +55,9 @@ public class ElementVisitor extends StepNode {
             String tagName,
             boolean isDirectChildOfStructure,
             StructPlaceHolderVisitor parentPlaceholder,
-            TextConverterFactory factory
-    ) {
+            TextConverterFactory factory) {
         super(tagName);
-        this.state = new PendingState();
-        state.tagName = tagName;
-        state.isDirectChildOfStructure = isDirectChildOfStructure;
-        state.parentPlaceholder = parentPlaceholder;
-        state.factory = factory;
+        this.state = new PendingState(tagName, isDirectChildOfStructure, parentPlaceholder, factory);
     }
 
     @SuppressWarnings("unused")
@@ -81,7 +78,6 @@ public class ElementVisitor extends StepNode {
     @Override
     public void onBuilderExiting() {
         if (state != null) {
-            state.ensureNotNull();
             initialize(
                     state.tagName,
                     state.ownText,
