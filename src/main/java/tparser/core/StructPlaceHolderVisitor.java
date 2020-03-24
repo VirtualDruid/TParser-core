@@ -32,7 +32,7 @@ public abstract class StructPlaceHolderVisitor extends StepNode {
             Object result,
             int index);
 
-    abstract <JO, JA> void resolveStack(ParseResult<JO, JA> state);
+//    abstract <JO, JA> void resolveStack(ParseResult<JO, JA> state);
 
     void addClassification(Evaluator evaluator, DOMSearchMethod.Scope scope) {
         onAddEvaluator(evaluator, false);

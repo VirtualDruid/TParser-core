@@ -21,18 +21,17 @@ abstract class ExtractionProcessor {
 
     static class RegexProcessor extends ExtractionProcessor {
         //need access to named group names
-        private Pattern pattern;
-        private List<TypeProcessor>            typeProcessors;
-        private boolean                        shouldFailNotMatch;
+        private Pattern             pattern;
+        private List<TypeProcessor> typeProcessors;
+        private boolean             shouldFailNotMatch;
 
         RegexProcessor(
                 TextExtractor preExtractor,
                 Pattern pattern,
                 boolean shouldFailNotMatch,
                 List<TypeProcessor> processors
-        )
 
-                throws PatternSyntaxException {
+        ) throws PatternSyntaxException {
 
             super(preExtractor);
             this.pattern = pattern;

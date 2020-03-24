@@ -34,7 +34,6 @@ final class NullWrapper extends Element {
     }
 
     static boolean isNullRepresent(Element test) {
-        //null param also return false
         return test instanceof NullWrapper || test == null;
     }
 

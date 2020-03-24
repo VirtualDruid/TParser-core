@@ -18,14 +18,14 @@ import java.util.List;
 public class ParseResult<JO, JA> {
     JsonDelegate<JO, JA> delegate;
     JO                   resultObject = null;
-    JA                   resultArray = null;
-    Element              rootInput;
+    JA                   resultArray  = null;
+    private Element rootInput;
 
     //using ArrayDeque because no need for thread safe
     //work only as stack
     Deque<ElementGroups> elementGroupsStack = new ArrayDeque<>();
-    Deque<Elements> selectionStack = new ArrayDeque<>();
-    Deque<List<JO>> pendingItemStack = new ArrayDeque<>();
+    Deque<Elements>      selectionStack     = new ArrayDeque<>();
+    Deque<List<JO>>      pendingItemStack   = new ArrayDeque<>();
 
     private long start;
 
@@ -34,7 +34,9 @@ public class ParseResult<JO, JA> {
     ParseResult(Element input, JsonDelegate<JO, JA> delegate) {
         this.rootInput = input;
         this.delegate = delegate;
-        selectionStack.push(new Elements(input));
+        Elements root = new Elements(1);
+        root.add(input);
+        selectionStack.push(root);
     }
 
     boolean shouldInitRoot() {
@@ -57,19 +59,23 @@ public class ParseResult<JO, JA> {
         delegate = null;
     }
 
+    public Element getRootInput() {
+        return rootInput;
+    }
+
     /**
      * get the result as json object which is defined by the template
      * if root is array, should be using
-     * @see #getResultArray()
-     *
-     * the concern why there is 2 method not only 1,like getJsonRoot()
-     * is because some Json library does not have polymorphic node model
-     *
-     * for instance: org.JSON's JOSNObject and JSONArray don't have same inheritance
      *
      * @return the root entry of Json
-     *
+     * <p>
      * return null if it's actually an array
+     * @see #getResultArray()
+     * <p>
+     * the concern why there is 2 method not only 1,like getJsonRoot()
+     * is because some Json library does not have polymorphic node model
+     * <p>
+     * for instance: org.JSON's JOSNObject and JSONArray don't have same inheritance
      */
     public JO getResultObject() {
         return resultObject;
@@ -77,7 +83,7 @@ public class ParseResult<JO, JA> {
 
     /**
      * @return the root entry of Json
-     *
+     * <p>
      * return null if it's actually an object
      */
     public JA getResultArray() {
@@ -90,6 +96,7 @@ public class ParseResult<JO, JA> {
     public long processTimeNanos() {
         return processTimeNanos;
     }
+
     /**
      * @return parsing time consumed, in millis
      */

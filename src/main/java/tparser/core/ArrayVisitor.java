@@ -100,38 +100,6 @@ public class ArrayVisitor extends StructPlaceHolderVisitor {
 
     @Override
     public <JO, JA> void onExit(ParseResult<JO, JA> state) {
-        resolveStack(state);
-    }
-
-    @Override
-    public void onBuilderVisiting() {
-
-    }
-
-    @Override
-    public void onBuilderExiting() {
-        if (classifier instanceof ClassifierTemp) {
-            classifier = ((ClassifierTemp) classifier).toArrayClassifier(container);
-        }
-        classifier.finish();
-    }
-
-    @Override
-    public <JO, JA> void onExtract(
-            ParseResult<JO, JA> state,
-            String property,
-            Object result,
-            int index) {
-        List<JO> items = state.pendingItemStack.peek();
-        if (result == null) {
-            state.delegate.putNull(items.get(index), property);
-        } else {
-            state.delegate.putValue(items.get(index), property, result);
-        }
-    }
-
-    @Override
-    public <JO, JA> void resolveStack(ParseResult<JO, JA> state) {
         JsonDelegate<JO, JA> delegate      = state.delegate;
         ElementGroups        elementGroups = state.elementGroupsStack.pop();
         List<JO>             items         = state.pendingItemStack.pop();
@@ -174,8 +142,81 @@ public class ArrayVisitor extends StructPlaceHolderVisitor {
             }
 
         }
+    }
+
+    @Override
+    public void onBuilderVisiting() {
 
     }
+
+    @Override
+    public void onBuilderExiting() {
+        if (classifier instanceof ClassifierTemp) {
+            classifier = ((ClassifierTemp) classifier).toArrayClassifier(container);
+        }
+        classifier.finish();
+    }
+
+    @Override
+    public <JO, JA> void onExtract(
+            ParseResult<JO, JA> state,
+            String property,
+            Object result,
+            int index) {
+        List<JO> items = state.pendingItemStack.peek();
+        if (result == null) {
+            state.delegate.putNull(items.get(index), property);
+        } else {
+            state.delegate.putValue(items.get(index), property, result);
+        }
+    }
+
+//    @Override
+//    public <JO, JA> void resolveStack(ParseResult<JO, JA> state) {
+//        JsonDelegate<JO, JA> delegate      = state.delegate;
+//        ElementGroups        elementGroups = state.elementGroupsStack.pop();
+//        List<JO>             items         = state.pendingItemStack.pop();
+//        List<Integer>        sizes         = elementGroups.getSizes();
+//
+//        List<JO> parentItems = state.pendingItemStack.peek();
+//        //spilt items by sizes and put into parent structure
+//        if (parentItems != null) {
+//            int processedItemSize = 0;
+//            for (int i = 0, arraySizesLength = sizes.size(); i < arraySizesLength; i++) {
+//                int size = sizes.get(i);
+//
+//                //sub array starting index
+//                final int startIndex = processedItemSize;
+//                //ending (exclusive)
+//                final int end         = processedItemSize + size;
+//                final JO  parentItem  = parentItems.get(i);
+//                final JA  destination = delegate.createArrayNode();
+//                delegate.putArrayNode(parentItem, this.name, destination);
+//                for (int j = startIndex; j < end; j++) {
+//                    delegate.add(destination, items.get(j));
+//                }
+//                processedItemSize += size;
+//            }
+//
+//        } else {
+//            //empty stack, resolving root
+//            if (state.resultArray != null) {
+//                //root is array
+//                for (JO jsonObject : items) {
+//                    delegate.add(state.resultArray, jsonObject);
+//                }
+//            } else {
+//                //root is object
+//                JA jsonArray = delegate.createArrayNode();
+//                for (JO jsonObject : items) {
+//                    delegate.add(jsonArray, jsonObject);
+//                }
+//                delegate.putArrayNode(state.resultObject, this.name, jsonArray);
+//            }
+//
+//        }
+//
+//    }
 
     @Override
     public String toString() {

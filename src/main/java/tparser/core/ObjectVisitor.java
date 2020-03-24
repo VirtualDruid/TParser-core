@@ -58,12 +58,18 @@ public class ObjectVisitor extends StructPlaceHolderVisitor {
 
     @Override
     public <JO, JA> void onExit(ParseResult<JO, JA> state) {
-        resolveStack(state);
+        List<JO> currentItems = state.pendingItemStack.pop();
+        List<JO> parentItems  = state.pendingItemStack.peek();
+        if (parentItems != null) {
+            for (int i = 0, size = currentItems.size(); i < size; i++) {
+                state.delegate.putObjectNode(parentItems.get(i), this.name, currentItems.get(i));
+            }
+        }
     }
 
     @Override
     public void onBuilderVisiting() {
-
+        //preserved
     }
 
     @Override
@@ -85,16 +91,16 @@ public class ObjectVisitor extends StructPlaceHolderVisitor {
         }
     }
 
-    @Override
-    public <JO, JA> void resolveStack(ParseResult<JO, JA> state) {
-        List<JO> currentItems = state.pendingItemStack.pop();
-        List<JO> parentItems  = state.pendingItemStack.peek();
-        if (parentItems != null) {
-            for (int i = 0, size = currentItems.size(); i < size; i++) {
-                state.delegate.putObjectNode(parentItems.get(i), this.name, currentItems.get(i));
-            }
-        }
-    }
+//    @Override
+//    public <JO, JA> void resolveStack(ParseResult<JO, JA> state) {
+//        List<JO> currentItems = state.pendingItemStack.pop();
+//        List<JO> parentItems  = state.pendingItemStack.peek();
+//        if (parentItems != null) {
+//            for (int i = 0, size = currentItems.size(); i < size; i++) {
+//                state.delegate.putObjectNode(parentItems.get(i), this.name, currentItems.get(i));
+//            }
+//        }
+//    }
 
     @Override
     public String toString() {

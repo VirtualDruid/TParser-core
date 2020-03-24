@@ -4,23 +4,44 @@ import org.jsoup.nodes.Element;
 import org.jsoup.nodes.Node;
 import org.jsoup.select.NodeVisitor;
 
-@SuppressWarnings("unused")
-/**
- * the facade parser
- */
-public class Template {
-    private      StepNode      root;
-    private      TreeParseFlow parser;
-    public final long          buildTimeConsumed;
+import java.util.Objects;
 
+/**
+ * the facade class
+ */
+@SuppressWarnings("unused")
+public class Template {
+    private StepNode      root;
+    private TreeParseFlow parser;
+
+    /**
+     * time of building the template object , in nanoseconds
+     */
+    public final long buildTimeConsumed;
+
+    /**
+     * default convenient constructor to simply create from a DOM
+     * @param template
+     */
     public Template(Element template) {
         this(new DefaultBuilder(template), Converters.defaultFactory());
     }
 
+    /**
+     * create a template with custom deserialization builder and default type conversion
+     * use template builder if requiring both custom builder and custom typing
+     * @param builder tree builder implementation
+     * @see TemplateBuilder
+     */
     public Template(StepTreeBuilder builder) {
         this(builder, Converters.defaultFactory());
     }
 
+    /**
+     * constructor used by template builder to ensure basic typing
+     * @param builder tree builder implementation
+     * @param factory produces text converter by given type name
+     */
     Template(StepTreeBuilder builder, TextConverterFactory factory) {
         long start = System.nanoTime();
         root = builder.build(factory);
@@ -63,7 +84,18 @@ public class Template {
         return stringBuilder.toString();
     }
 
+    /**
+     * parse a DOM into json, with a given json type from delegate
+     * @param rootInput root of DOM
+     * @param delegate delegation to the json library
+     * @param <JO> json object's type given by delegate
+     * @param <JA> json array's type given by delegate
+     * @return parse result
+     * @throws HtmlParseException if the given DOM has a required but missing, or a found-and-fail element
+     */
     public <JO, JA> ParseResult<JO, JA> parse(Element rootInput, JsonDelegate<JO, JA> delegate) throws HtmlParseException {
+        Objects.requireNonNull(rootInput, "input element cannot be null");
+        Objects.requireNonNull(delegate, "json delegate must be provided");
         return parser.parse(rootInput, delegate);
     }
 }
