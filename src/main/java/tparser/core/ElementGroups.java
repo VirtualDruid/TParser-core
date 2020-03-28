@@ -88,6 +88,10 @@ class ElementGroups {
         currentSubArraySize++;
     }
 
+    void onNullParent(Element parent) {
+        fillPreviousGroupsWithNull(parent);
+    }
+
     /**
      * on found non-first type element in a group
      */

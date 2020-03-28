@@ -30,6 +30,8 @@ abstract class Classifier {
             elementGroups.onStartOfParent();
             if (!NullWrapper.isNullRepresent(parent)) {
                 onNonNullParent(elementGroups, parent, finder);
+            } else {
+                elementGroups.onNullParent(parent);
             }
             elementGroups.onEndOfParent();
         }
