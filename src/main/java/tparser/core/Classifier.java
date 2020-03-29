@@ -31,7 +31,7 @@ abstract class Classifier {
             if (!NullWrapper.isNullRepresent(parent)) {
                 onNonNullParent(elementGroups, parent, finder);
             } else {
-                elementGroups.onNullParent(parent);
+                onNullParent(elementGroups, parent);
             }
             elementGroups.onEndOfParent();
         }
@@ -44,6 +44,8 @@ abstract class Classifier {
     protected void onNonNullParent(ElementGroups groups, Element parent, Finder finder) {
         finder.find(parent);
     }
+
+    protected abstract void onNullParent(ElementGroups groups, Element parent);
 
     void finish() {
         //lock to unmodifiable
@@ -131,6 +133,11 @@ abstract class Classifier {
             }
         }
 
+        @Override
+        protected void onNullParent(ElementGroups groups, Element parent) {
+            groups.addNullGroup(parent);
+        }
+
     }
 
     static class SingleTypeArray extends Classifier {
@@ -180,6 +187,11 @@ abstract class Classifier {
                     measureDeepest(parents) :
                     depthLimit;
             return new LimitDepthSingleTypeFinder(evaluator, groups, limit);
+        }
+
+        @Override
+        protected void onNullParent(ElementGroups groups, Element parent) {
+            //empty array
         }
 
         private static abstract class SingleTypeFinder implements NodeFilter, Finder {
@@ -337,6 +349,11 @@ abstract class Classifier {
                     measureDeepest(parents) :
                     depthLimit;
             return new LimitDepthMultiTypeFinder(limit, new MultiTypeCollector(groups), classifications);
+        }
+
+        @Override
+        protected void onNullParent(ElementGroups groups, Element parent) {
+            //empty array
         }
 
         private static class MultiTypeCollector {

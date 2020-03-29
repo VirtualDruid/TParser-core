@@ -241,6 +241,11 @@ public class ArrayVisitor extends StructPlaceHolderVisitor {
             return null;
         }
 
+        @Override
+        protected void onNullParent(ElementGroups groups, Element parent) {
+            //no usage
+        }
+
         final Classifier toArrayClassifier(AttributeContainer container) {
             Classifier classifier = (classificationCount == 1) ?
                     new Classifier.SingleTypeArray(container) :

@@ -20,7 +20,7 @@ dependencies {
     api group: 'org.jsoup', name: 'jsoup', version: '1.12.1'
     api group: 'com.github.tony19', name: 'named-regexp', version: '0.2.5'
     testCompile files('out/artifacts/io_virtualdruid_tparser_core_jar/io.virtualdruid.tparser-core.main.jar')
-    testCompile 'com.github.VirtualDruid:delegate-jackson:master-SNAPSHOT'
+    testCompile 'com.github.VirtualDruid:TParser-delegate-jackson:master-SNAPSHOT'
     testCompile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.10.0'
     testCompile group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: '2.10.0'
     testCompile group: 'com.fasterxml.jackson.core', name: 'jackson-annotations', version: '2.10.0'

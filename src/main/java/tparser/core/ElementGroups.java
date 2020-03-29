@@ -58,6 +58,13 @@ class ElementGroups {
         }
     }
 
+    //used by Classifier.Object to make sure object always has at least 1 group
+    void addNullGroup(Element parent) {
+        for (Map.Entry<Evaluator, ArrayList<Element>> entry : classified.entrySet()) {
+            entry.getValue().add(NullWrapper.nullRepresent(parent));
+        }
+    }
+
     /**
      * all the parents are processed
      * finish the last group
@@ -88,10 +95,6 @@ class ElementGroups {
         currentSubArraySize++;
     }
 
-    void onNullParent(Element parent) {
-        fillPreviousGroupsWithNull(parent);
-    }
-
     /**
      * on found non-first type element in a group
      */
@@ -120,7 +123,7 @@ class ElementGroups {
      * get elements of a type inside each group
      *
      * @param classificationKey the evaluator represent the type
-     * @return properties of the same type, in those' owner groups order
+     * @return properties of the same type, in those owner groups order
      * @see ElementVisitor
      */
     ArrayList<Element> getClassifiedElements(Evaluator classificationKey) {
