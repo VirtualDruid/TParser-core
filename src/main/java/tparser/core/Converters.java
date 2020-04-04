@@ -23,14 +23,24 @@ public class Converters {
     private static final String  LINE_BREAK                   = "\n";
 
     /*--  built-in  --*/
+    /**
+     * these are a part of public api to construct advanced converter or aliasing defaults
+     */
     public static final TextConverter<String>  toString  = (text) -> text;
+    @SuppressWarnings("WeakerAccess")
     public static final TextConverter<Integer> toInteger = Integer::valueOf;
+    @SuppressWarnings("WeakerAccess")
     public static final TextConverter<Long>    toLong    = Long::valueOf;
+    @SuppressWarnings("WeakerAccess")
     public static final TextConverter<Short>   toShort   = Short::valueOf;
+    @SuppressWarnings("WeakerAccess")
     public static final TextConverter<Byte>    toByte    = Byte::valueOf;
+    @SuppressWarnings("WeakerAccess")
     public static final TextConverter<Float>   toFloat   = Float::valueOf;
+    @SuppressWarnings("WeakerAccess")
     public static final TextConverter<Double>  toDouble  = Double::valueOf;
 
+    @SuppressWarnings("WeakerAccess")
     public static final TextConverter<Boolean> toBoolean = Boolean::valueOf;
     /*--  built-in  --*/
 
@@ -74,6 +84,7 @@ public class Converters {
      * @param <T>                the final result type
      * @return converter outputs T type
      */
+    @SuppressWarnings("WeakerAccess")
     public static <T> TextConverter<T> pipe(List<TextConverter<String>> textProcessingPipe, TextConverter<T> out) {
         return new Concat<>(new Pipe(textProcessingPipe), out);
     }
@@ -93,6 +104,7 @@ public class Converters {
      * @param textProcessingPipe list of converters where the text will be processed
      * @return converter outputs String type
      */
+    @SuppressWarnings("WeakerAccess")
     public static TextConverter<String> pipe(List<TextConverter<String>> textProcessingPipe) {
         return new Pipe(textProcessingPipe);
     }
@@ -235,7 +247,7 @@ public class Converters {
             if ((converter = additionalFactory.create(type)) != null) {
                 return converter;
             }
-            throw new TemplateSyntaxError(String.format("unknown converter type: %s", type));
+            return null;
         }
 
     }

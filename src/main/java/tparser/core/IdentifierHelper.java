@@ -14,6 +14,13 @@ class IdentifierHelper {
     private static final String ANNOTATION_OUTER_HTML = "*#";
     private static final String ANNOTATION_FULL_TEXT  = "'#";
 
+    /**
+     * the 'Redundant Escape' must not be removed
+     * the java Regex is platform sensitive since it may use different Regex Engine
+     *
+     * on the Android platform
+     * the missing escape will result in throwing PatterSyntaxException by ICU Engine
+     */
     // ^\s*\[.*\]\{.*\}\s*$
     private static final Pattern PATTERN_BASIC_TEXT_IDENTIFIER = Pattern.compile("^\\s*(?<types>\\[.*\\])?\\s*\\{(?<identifier>.*)\\}\\s*$");
 
@@ -148,6 +155,15 @@ class IdentifierHelper {
         }
     }
 
+    //quick fail when a template is building and a invalid type annotation occurs
+    private static TextConverter createAndValidateConverter(TextConverterFactory factory, String type) {
+        TextConverter converter = factory.create(type);
+        if (converter == null) {
+            throw new TemplateSyntaxError(String.format("unknown converter type: %s", type));
+        }
+        return converter;
+    }
+
     private static ExtractionProcessor createExtractionProcessor(
             Matcher matchIdentifier,
             StructPlaceHolderVisitor structure,
@@ -172,7 +188,7 @@ class IdentifierHelper {
                 // ex: [Integer,Integer] {(?<a>)(?<b>)(?<c>)} -> a: Integer, b: Integer, c: String
                 String type = i < types.length ? types[i] : Converters.defaultConverterType();
 
-                TextConverter converter = factory.create(type);
+                TextConverter converter = createAndValidateConverter(factory, type);
                 processors.add(new TypeProcessor(structure, name, converter, type));
             }
             return new ExtractionProcessor.RegexProcessor(extractor, regex, shouldFailNotMatch(matchRegex), processors);
@@ -180,7 +196,9 @@ class IdentifierHelper {
             checkTypePropertiesRange(types.length, 1);
             String type = types.length == 0 ? Converters.defaultConverterType() : types[0];
             structure.addProperty(identifier);
-            return new ExtractionProcessor.SimpleProcessor(extractor, new TypeProcessor(structure, getPropertyName(identifier), factory.create(type), type));
+            TextConverter converter = createAndValidateConverter(factory, type);
+            String        property  = getPropertyName(identifier);
+            return new ExtractionProcessor.SimpleProcessor(extractor, new TypeProcessor(structure, property, converter, type));
         }
 
     }
