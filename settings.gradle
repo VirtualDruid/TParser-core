@@ -1,2 +1,4 @@
 rootProject.name = 'tparser-core'
+include 'test'
+include 'test'
 

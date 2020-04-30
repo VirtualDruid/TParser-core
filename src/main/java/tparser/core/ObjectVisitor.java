@@ -11,6 +11,12 @@ public class ObjectVisitor extends StructPlaceHolderVisitor {
 
     static final String TAG = "json-object";
 
+    /**
+     * source independent constructor
+     *
+     * @param container options attribute set
+     */
+    @SuppressWarnings("WeakerAccess")
     public ObjectVisitor(AttributeContainer container) {
         super(TAG, container);
         classifier = new Classifier.Object();

@@ -29,7 +29,7 @@ import java.util.Map;
  * [p, div, p, p, div, p] -> [{p div null}, {p null null}, {p div null}, {p null null}]
  */
 class ElementGroups {
-
+    //the total of groups found
     private int groupsFound         = 0;
     //the current sub array size
     private int currentSubArraySize = 0;
@@ -39,7 +39,7 @@ class ElementGroups {
 
     //the sub array sizes used by ArrayVisitor
     //classified elements will be spilt by sizes
-    private ArrayList<Integer> sizes = new ArrayList<>();
+    private ArrayList<Integer> subArraySizes = new ArrayList<>();
 
     ElementGroups(List<Evaluator> classifications) {
         classified = new IdentityHashMap<>(CollectionHelper.enoughHashTableCapacity(classifications.size()));
@@ -81,18 +81,25 @@ class ElementGroups {
      * @see Classifier
      */
     void onShouldNewGroup(Element parent, Element element, Evaluator eval) {
-//        //first group will never execute the loop (empty entries)
-//        for (Map.Entry<Evaluator, ArrayList<Element>> entry : classified.entrySet()) {
-//            List<Element> classifiedElements = entry.getValue();
-//            //fill the group by adding missing elements as null
-//            if (classifiedElements.size() < groupsFound) {
-//                classifiedElements.add(NullWrapper.nullRepresent(parent));
-//            }
-//        }
         fillPreviousGroupsWithNull(parent);
         classified.get(eval).add(element);
         groupsFound++;
         currentSubArraySize++;
+
+    }
+
+    void removeLastArray() {
+        final int s = subArraySizes.size();
+        if (s > 0) {
+            int lastArraySize = subArraySizes.remove(s - 1);
+            int maxIndex      = lastArraySize - 1;
+            for (Map.Entry<Evaluator, ArrayList<Element>> entry : classified.entrySet()) {
+                //remove last groups
+                for (int i = maxIndex; i >= 0; i--) {
+                    entry.getValue().remove(i);
+                }
+            }
+        }
     }
 
     /**
@@ -106,7 +113,7 @@ class ElementGroups {
      * start at a new root
      * reset sub array size
      */
-    void onStartOfParent() {
+    void onStartOfSubArray() {
         currentSubArraySize = 0;
     }
 
@@ -114,8 +121,8 @@ class ElementGroups {
      * end of a root
      * the sub array is complete
      */
-    void onEndOfParent() {
-        sizes.add(currentSubArraySize);
+    void onEndOfSubArray() {
+        subArraySizes.add(currentSubArraySize);
     }
 
 
@@ -135,8 +142,8 @@ class ElementGroups {
      *
      * @see ArrayVisitor
      */
-    List<Integer> getSizes() {
-        return sizes;
+    List<Integer> getSubArraySizes() {
+        return subArraySizes;
     }
 
     /**

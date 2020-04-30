@@ -7,8 +7,12 @@ import org.jsoup.select.Selector;
 
 import static tparser.core.Classifier.DepthStrategy;
 
-final class SearchMethodHelper {
-    private SearchMethodHelper() {
+/**
+ * helper class
+ * find and extract search options info from attributes
+ */
+final class SearchOptionAttributeHelper {
+    private SearchOptionAttributeHelper() {
     }
 
 //    /**
@@ -37,10 +41,63 @@ final class SearchMethodHelper {
 //        }
 //
 //    }
-    private static final String DEPTH_LIMIT = "depth-limit";
+    private static final String DEPTH_LIMIT       = "depth-limit";
+    private static final String START_DELIMITER   = "start-delimiter";
+    private static final String END_DELIMITER     = "end-delimiter";
+    private static final String BETWEEN_DELIMITER = "between-delimiter";
 
     static int getDepthLimitAttr(AttributeContainer container) {
         return Integer.parseInt(container.getAttr(DEPTH_LIMIT));
+    }
+
+    private static Evaluator getDelimiter(AttributeContainer container, String delimiterType) {
+        try {
+            return container.hasAttr(delimiterType) ?
+                    QueryParser.parse(container.getAttr(delimiterType)) :
+                    null; //do not have any delimiter
+        } catch (Selector.SelectorParseException parseException) {
+            String query = container.getAttr(delimiterType);
+            throw TemplateSyntaxError.selectorSyntaxError(query, parseException);
+        }
+    }
+
+
+    static Delimiter.Factory delimiterFactory(AttributeContainer container) {
+        Evaluator start   = getStartDelimiter(container);
+        Evaluator end     = getEndDelimiter(container);
+        Evaluator between = getBetweenDelimiter(container);
+
+        boolean hasStart   = start != null;
+        boolean hasEnd     = end != null;
+        boolean hasBetween = between != null;
+
+        if ((hasStart || hasEnd) && hasBetween) {
+            throw new TemplateSyntaxError("cannot have between-delimiter with start-delimiter/end-delimiter");
+        }
+
+        if (hasBetween) {
+            return new Delimiter.BetweenFactory(between);
+        }
+        if (hasStart && hasEnd) {
+            return new Delimiter.StartEndFactory(start, end);
+        } else if (hasStart) {
+            return new Delimiter.StartFactory(start);
+        } else if (hasEnd) {
+            return new Delimiter.EndFactory(end);
+        }
+        return Delimiter.noDelimiter;
+    }
+
+    private static Evaluator getStartDelimiter(AttributeContainer container) {
+        return getDelimiter(container, START_DELIMITER);
+    }
+
+    private static Evaluator getBetweenDelimiter(AttributeContainer container) {
+        return getDelimiter(container, BETWEEN_DELIMITER);
+    }
+
+    private static Evaluator getEndDelimiter(AttributeContainer container) {
+        return getDelimiter(container, END_DELIMITER);
     }
 
     /**
@@ -112,10 +169,10 @@ final class SearchMethodHelper {
     /*------------------------------------*/
     private static final String X_SELECT_IN_SUBTREE = "x-select-in-subtree";
 
-    /**
-     * should include root from selection or not
-     * default: false
-     */
+//    /**
+//     * should include root from selection or not
+//     * default: false
+//     */
 //    private static final String X_INCLUDE_ROOT = "x-include-root";
     /*------------------------------------*/
 
@@ -186,12 +243,9 @@ final class SearchMethodHelper {
 //    }
 
     static DOMSearchMethod.FirstSelector singleSelector(DOMSearchMethod.Scope scope) {
-        switch (scope) {
-            case SUBTREE_EXCLUDE_ROOT:
-                return DOMSearchMethod.FirstSelector.excludeRoot;
-            default:
-                return DOMSearchMethod.FirstSelector.firstInChildren;
-        }
+        return scope == DOMSearchMethod.Scope.SUBTREE_EXCLUDE_ROOT ?
+                DOMSearchMethod.FirstSelector.excludeRoot :
+                DOMSearchMethod.FirstSelector.firstInChildren;
     }
 
 
@@ -246,7 +300,7 @@ final class SearchMethodHelper {
         boolean or        = attributes.hasAttr(X_OR_SELECTOR);
         boolean overwrite = attributes.hasAttr(X_OVERWRITE_DEFAULT_SELECTOR);
         if ((and && or) || (and && overwrite) || (or && overwrite)) {
-            throw new TemplateSyntaxError("only one AND/OR/OVERWRITE selector is allowed at once");
+            throw new TemplateSyntaxError("only one x-and-selector/x-or-selector/x-overwrite-default-selector selector is allowed at once");
         }
         try {
             if (and) {
@@ -259,7 +313,17 @@ final class SearchMethodHelper {
                 return QueryParser.parse(attributes.getAttr(X_OVERWRITE_DEFAULT_SELECTOR));
             }
         } catch (Selector.SelectorParseException parseException) {
-            throw new TemplateSyntaxError(String.format("css selector syntax error: %s", parseException.getMessage()), parseException);
+            String query = "";
+            if (and) {
+                query = attributes.getAttr(X_AND_SELECTOR);
+            }
+            if (or) {
+                query = attributes.getAttr(X_OR_SELECTOR);
+            }
+            if (overwrite) {
+                query = attributes.getAttr(X_OVERWRITE_DEFAULT_SELECTOR);
+            }
+            throw TemplateSyntaxError.selectorSyntaxError(query, parseException);
         }
         return evalFromTemplate;
     }

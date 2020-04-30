@@ -1,6 +1,8 @@
 package tparser.core;
 
 
+import org.jsoup.select.Selector;
+
 @SuppressWarnings("unused")
 public class TemplateSyntaxError extends Error {
 
@@ -15,5 +17,9 @@ public class TemplateSyntaxError extends Error {
     @Override
     public String getMessage() {
         return super.getMessage();
+    }
+
+    static TemplateSyntaxError selectorSyntaxError(String query, Selector.SelectorParseException parseException) {
+        return new TemplateSyntaxError(String.format("css selector syntax error: %s - %s", query, parseException.getMessage()));
     }
 }

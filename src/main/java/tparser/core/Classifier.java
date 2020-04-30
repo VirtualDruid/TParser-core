@@ -13,6 +13,9 @@ import java.util.List;
 
 /**
  * functional class
+ * find and group up elements
+ *
+ * @see ElementGroups
  */
 abstract class Classifier {
     private static final int CHILDREN_DEPTH = 1;
@@ -27,13 +30,15 @@ abstract class Classifier {
 
         Finder finder = createFinder(elementGroups, parents);
         for (Element parent : parents) {
-            elementGroups.onStartOfParent();
+//            elementGroups.onStartOfArray();
+            finder.before();
             if (!NullWrapper.isNullRepresent(parent)) {
                 onNonNullParent(elementGroups, parent, finder);
             } else {
                 onNullParent(elementGroups, parent);
             }
-            elementGroups.onEndOfParent();
+//            elementGroups.onEndOfArray();
+            finder.after();
         }
         elementGroups.onParentsAllVisited(parents);
         return elementGroups;
@@ -55,7 +60,11 @@ abstract class Classifier {
 
     /*---inner classes---*/
     interface Finder {
+        void before();
+
         void find(Element parent);
+
+        void after();
     }
 
     enum DepthStrategy {
@@ -109,14 +118,14 @@ abstract class Classifier {
         @Override
         void addClassification(Evaluator evaluator, DOMSearchMethod.Scope scope) {
             classifications.add(evaluator);
-            selectors.add(SearchMethodHelper.singleSelector(scope));
+            selectors.add(SearchOptionAttributeHelper.singleSelector(scope));
         }
 
         @Override
         protected Finder createFinder(ElementGroups groups, Elements parents) {
             //no usage
             //see onNonNullParent
-            return null;
+            return EmptyFinder.instance;
         }
 
         @Override
@@ -138,22 +147,46 @@ abstract class Classifier {
             groups.addNullGroup(parent);
         }
 
+
+        private static final class EmptyFinder implements Finder {
+
+            private static final Finder instance = new EmptyFinder();
+
+            private EmptyFinder() {
+            }
+
+            @Override
+            public void before() {
+
+            }
+
+            @Override
+            public void find(Element parent) {
+
+            }
+
+            @Override
+            public void after() {
+
+            }
+        }
     }
 
+    /**
+     * find groups with only 1 type of element
+     */
     static class SingleTypeArray extends Classifier {
         private DepthStrategy         depthStrategy;
         private int                   depthLimit;
         private Evaluator             evaluator;
         private DOMSearchMethod.Scope scope;
-//        private FinderFactory finderFactory;
+        private Delimiter.Factory     delimiterFactory;
 
-//        SingleTypeArray(int depthLimit) {
-//            this.depthLimit = depthLimit;
-//        }
+//        private Evaluator startDelimiter;
+//        private Evaluator endDelimiter;
 
         SingleTypeArray(AttributeContainer container) {
-//            depthLimit = SearchMethodHelper.arrayDepthLimit(container);
-            depthStrategy = SearchMethodHelper.arrayDepthStrategy(container);
+            depthStrategy = SearchOptionAttributeHelper.arrayDepthStrategy(container);
             switch (depthStrategy) {
                 case RUNTIME:
                     break;
@@ -161,9 +194,13 @@ abstract class Classifier {
                     depthLimit = Integer.MAX_VALUE;
                     break;
                 case STATIC_LIMIT:
-                    depthLimit = SearchMethodHelper.getDepthLimitAttr(container);
+                    depthLimit = SearchOptionAttributeHelper.getDepthLimitAttr(container);
                     break;
             }
+
+            delimiterFactory = SearchOptionAttributeHelper.delimiterFactory(container);
+//            startDelimiter = SearchMethodHelper.getStartDelimiter(container);
+//            endDelimiter = SearchMethodHelper.getEndDelimiter(container);
         }
 
         private int measureDeepest(Elements parents) {
@@ -186,7 +223,7 @@ abstract class Classifier {
             int limit = (depthStrategy == DepthStrategy.RUNTIME) ?
                     measureDeepest(parents) :
                     depthLimit;
-            return new LimitDepthSingleTypeFinder(evaluator, groups, limit);
+            return new LimitDepthSingleTypeFinder(evaluator, groups, limit, delimiterFactory.create(groups));
         }
 
         @Override
@@ -194,39 +231,37 @@ abstract class Classifier {
             //empty array
         }
 
-        private static abstract class SingleTypeFinder implements NodeFilter, Finder {
+        private static class LimitDepthSingleTypeFinder implements NodeFilter, Finder {
+            int depthLimit;
+            protected Element   root;
+            protected Evaluator evaluator;
+            ElementGroups elementGroups;
+            Delimiter     delimiter;
 
-            protected int depthLimit;
-
-            protected Element       root;
-            protected Evaluator     evaluator;
-            protected ElementGroups elementGroups;
-
-            SingleTypeFinder(Evaluator evaluator, ElementGroups elementGroups, int depthLimit) {
+            LimitDepthSingleTypeFinder(
+                    Evaluator evaluator,
+                    ElementGroups elementGroups,
+                    int depthLimit,
+                    Delimiter delimiter
+            ) {
                 this.evaluator = evaluator;
                 this.elementGroups = elementGroups;
                 this.depthLimit = depthLimit;
-            }
-
-            @Override
-            public void find(Element root) {
-                this.root = root;
-                this.root.filter(this);
-            }
-        }
-
-        private static class LimitDepthSingleTypeFinder extends SingleTypeFinder {
-            LimitDepthSingleTypeFinder(Evaluator evaluator, ElementGroups elementGroups, int depthLimit) {
-                super(evaluator, elementGroups, depthLimit);
+                this.delimiter = delimiter;
             }
 
             @Override
             public FilterResult head(Node node, int depth) {
                 if (node instanceof Element && node != root) {
-                    Element element = (Element) node;
-                    if (evaluator.matches(root, element)) {
-                        elementGroups.onShouldNewGroup(root, element, evaluator);
+                    Element element     = (Element) node;
+                    boolean isDelimiter = delimiter.checkShouldSplit(root, element);
+                    //exclude delimiter
+                    if (!isDelimiter && delimiter.shouldCollect()) {
+                        if (evaluator.matches(root, element)) {
+                            elementGroups.onShouldNewGroup(root, element, evaluator);
+                        }
                     }
+
                 }
                 if (depth == depthLimit) {
                     return FilterResult.SKIP_CHILDREN;
@@ -238,38 +273,23 @@ abstract class Classifier {
             public FilterResult tail(Node node, int depth) {
                 return FilterResult.CONTINUE;
             }
-        }
 
-//        private static class RuntimeDepthLimitSingleTypeFinder extends SingleTypeFinder {
-//            private static final int INITIAL_NOT_SET = -1;
-//
-//            RuntimeDepthLimitSingleTypeFinder(Evaluator evaluator, ElementGroups collector) {
-//                super(evaluator, collector, INITIAL_NOT_SET);
-//            }
-//
-//            @Override
-//            public FilterResult head(Node node, int depth) {
-//                if (node instanceof Element && node != root) {
-//                    Element element = (Element) node;
-//                    if (evaluator.matches(root, element)) {
-//                        elementGroups.onShouldNewGroup(root, element, evaluator);
-//                        if (depthLimit == INITIAL_NOT_SET) {
-//                            //first found
-//                            depthLimit = depth;
-//                        }
-//                    }
-//                }
-//                if (depth == depthLimit) {
-//                    return FilterResult.SKIP_CHILDREN;
-//                }
-//                return FilterResult.CONTINUE;
-//            }
-//
-//            @Override
-//            public FilterResult tail(Node node, int depth) {
-//                return FilterResult.CONTINUE;
-//            }
-//        }
+            @Override
+            public void before() {
+                delimiter.onStartOfParent();
+            }
+
+            @Override
+            public void find(Element root) {
+                this.root = root;
+                this.root.filter(this);
+            }
+
+            @Override
+            public void after() {
+                delimiter.onEndOfParent();
+            }
+        }
 
         @Override
         void addClassification(Evaluator evaluator, DOMSearchMethod.Scope scope) {
@@ -281,13 +301,18 @@ abstract class Classifier {
 
     }
 
+    /**
+     * find groups with multiple type of elements in a group
+     */
     static class MultiTypeArray extends Classifier {
-        private DepthStrategy   depthStrategy;
-        private int             depthLimit;
-        private List<Evaluator> subtreeEvaluators = new ArrayList<>();
+        private DepthStrategy     depthStrategy;
+        private int               depthLimit;
+        private List<Evaluator>   subtreeEvaluators = new ArrayList<>();
+        private Delimiter.Factory delimiterFactory;
+
 
         MultiTypeArray(AttributeContainer container) {
-            depthStrategy = SearchMethodHelper.arrayDepthStrategy(container);
+            depthStrategy = SearchOptionAttributeHelper.arrayDepthStrategy(container);
             switch (depthStrategy) {
                 case RUNTIME:
                     break;
@@ -295,9 +320,10 @@ abstract class Classifier {
                     depthLimit = Integer.MAX_VALUE;
                     break;
                 case STATIC_LIMIT:
-                    depthLimit = SearchMethodHelper.getDepthLimitAttr(container);
+                    depthLimit = SearchOptionAttributeHelper.getDepthLimitAttr(container);
                     break;
             }
+            delimiterFactory = SearchOptionAttributeHelper.delimiterFactory(container);
 
         }
 
@@ -348,12 +374,12 @@ abstract class Classifier {
             int limit = (depthStrategy == DepthStrategy.RUNTIME) ?
                     measureDeepest(parents) :
                     depthLimit;
-            return new LimitDepthMultiTypeFinder(limit, new MultiTypeCollector(groups), classifications);
+            return new LimitDepthMultiTypeFinder(limit, new MultiTypeCollector(groups), classifications, delimiterFactory.create(groups));
         }
 
         @Override
         protected void onNullParent(ElementGroups groups, Element parent) {
-            //empty array
+            //should be an empty array
         }
 
         private static class MultiTypeCollector {
@@ -390,11 +416,13 @@ abstract class Classifier {
             private Element            root;
             private MultiTypeCollector collector;
             private List<Evaluator>    types;
+            private Delimiter          delimiter;
 
-            LimitDepthMultiTypeFinder(int depthLimit, MultiTypeCollector collector, List<Evaluator> types) {
+            LimitDepthMultiTypeFinder(int depthLimit, MultiTypeCollector collector, List<Evaluator> types, Delimiter delimiter) {
                 this.depthLimit = depthLimit;
                 this.collector = collector;
                 this.types = types;
+                this.delimiter = delimiter;
             }
 
             //test an element if it's any type of element from the evaluators
@@ -415,7 +443,12 @@ abstract class Classifier {
             public FilterResult head(Node node, int depth) {
                 //exclude root
                 if (node instanceof Element && node != root) {
-                    evaluateWithEachType((Element) node);
+                    Element element     = (Element) node;
+                    boolean isDelimiter = delimiter.checkShouldSplit(root, element);
+                    //exclude delimiter
+                    if (!isDelimiter && delimiter.shouldCollect()) {
+                        evaluateWithEachType(element);
+                    }
                 }
                 if (depth == depthLimit) {
                     return FilterResult.SKIP_CHILDREN;
@@ -429,10 +462,20 @@ abstract class Classifier {
             }
 
             @Override
+            public void before() {
+                delimiter.onStartOfParent();
+            }
+
+            @Override
             public void find(Element parent) {
                 //set new root
                 this.root = parent;
                 this.root.filter(this);
+            }
+
+            @Override
+            public void after() {
+                delimiter.onEndOfParent();
             }
         }
     }

@@ -38,7 +38,7 @@ public class ElementVisitor extends StepNode {
         AttributeContainer<? extends Map.Entry<String, String>> attrs   = CollectionHelper.emptyContainer();
         TextConverterFactory                                    factory;
 
-        public PendingState(String tagName, boolean isDirectChildOfStructure, StructPlaceHolderVisitor parentPlaceholder, TextConverterFactory factory) {
+        PendingState(String tagName, boolean isDirectChildOfStructure, StructPlaceHolderVisitor parentPlaceholder, TextConverterFactory factory) {
             this.tagName = tagName;
             this.isDirectChildOfStructure = isDirectChildOfStructure;
             this.parentPlaceholder = parentPlaceholder;
@@ -143,7 +143,7 @@ public class ElementVisitor extends StepNode {
             String key   = attr.getKey();
             String value = attr.getValue();
 
-            if (SearchMethodHelper.isExtensionAttr(key)) {
+            if (SearchOptionAttributeHelper.isExtensionAttr(key)) {
                 //ignore x-attr
                 continue;
             }
@@ -190,14 +190,14 @@ public class ElementVisitor extends StepNode {
             }
         }
         this.hasExtractions = (processors.size() != 0);
-        this.checker = SearchMethodHelper.createChecker(attrs);
+        this.checker = SearchOptionAttributeHelper.createChecker(attrs);
 //        this.searchMethod = SearchMethodHelper.searchFirstMethod(attrs);
 
-        DOMSearchMethod.Scope scope = SearchMethodHelper.scope(attrs);
-        this.firstSelector = SearchMethodHelper.singleSelector(scope);
+        DOMSearchMethod.Scope scope = SearchOptionAttributeHelper.scope(attrs);
+        this.firstSelector = SearchOptionAttributeHelper.singleSelector(scope);
         Evaluator defaultEval = new CombiningEvaluator.And(combines);
 
-        selfEval = SearchMethodHelper.composeEvaluator(attrs, defaultEval);
+        selfEval = SearchOptionAttributeHelper.composeEvaluator(attrs, defaultEval);
         if (isDirectChildOfStructure) {
             parentPlaceholder.addClassification(selfEval, scope);
         }

@@ -52,8 +52,9 @@ public class ArrayVisitor extends StructPlaceHolderVisitor {
      * source independent constructor
      * should call onBuilderExiting to init (actual) classifier
      *
-     * @param container attribute set
+     * @param container options attribute set
      */
+    @SuppressWarnings("WeakerAccess")
     public ArrayVisitor(AttributeContainer container) {
         super(TAG, container);
         this.container = container;
@@ -101,28 +102,51 @@ public class ArrayVisitor extends StructPlaceHolderVisitor {
     @Override
     public <JO, JA> void onExit(ParseResult<JO, JA> state) {
         JsonDelegate<JO, JA> delegate      = state.delegate;
-        ElementGroups        elementGroups = state.elementGroupsStack.pop();
         List<JO>             items         = state.pendingItemStack.pop();
-        List<Integer>        sizes         = elementGroups.getSizes();
+        List<Integer>        arraySizeList = state.elementGroupsStack.pop().getSubArraySizes();
 
         List<JO> parentItems = state.pendingItemStack.peek();
         //spilt items by sizes and put into parent structure
         if (parentItems != null) {
-            int processedItemSize = 0;
-            for (int i = 0, arraySizesLength = sizes.size(); i < arraySizesLength; i++) {
-                int size = sizes.get(i);
+            int processedItems = 0;
+//            for (int i = 0, arraySizesLength = arraySizeList.size(); i < arraySizesLength; i++) {
+//                int size = arraySizeList.get(i);
+//
+//                //sub array starting index
+//                final int startIndex = processedItemSize;
+//                //ending (exclusive)
+//                final int end         = processedItemSize + size;
+//                final JO  parentItem  = parentItems.get(i);
+//                final JA  destination = delegate.createArrayNode();
+//                delegate.putArrayNode(parentItem, this.name, destination);
+//                for (int j = startIndex; j < end; j++) {
+//                    delegate.add(destination, items.get(j));
+//                }
+//                processedItemSize += size;
+//            }
+
+            //now based on items instead of sizes
+            //the sub arrays out of bound from the parent item's index will be ignore
+            final int maxIndexOfSizeList = arraySizeList.size() - 1;
+            for (int i = 0, size = parentItems.size(); i < size; i++) {
+                int subArraySize = i <= maxIndexOfSizeList ?
+                        arraySizeList.get(i) :
+                        0;
 
                 //sub array starting index
-                final int startIndex = processedItemSize;
+                final int startIndex = processedItems;
                 //ending (exclusive)
-                final int end         = processedItemSize + size;
-                final JO  parentItem  = parentItems.get(i);
-                final JA  destination = delegate.createArrayNode();
+                final int end = processedItems + subArraySize;
+
+                final JO parentItem  = parentItems.get(i);
+                final JA destination = delegate.createArrayNode();
+
                 delegate.putArrayNode(parentItem, this.name, destination);
                 for (int j = startIndex; j < end; j++) {
                     delegate.add(destination, items.get(j));
                 }
-                processedItemSize += size;
+                processedItems += subArraySize;
+
             }
 
         } else {

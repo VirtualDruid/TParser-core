@@ -1,6 +1,6 @@
 package tparser.core;
 
-import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 
 @SuppressWarnings("unused")
 public class TemplateBuilder {
@@ -11,7 +11,7 @@ public class TemplateBuilder {
         this.stepTreeBuilder = templateSource;
     }
 
-    public TemplateBuilder(Document templateSource) {
+    public TemplateBuilder(Element templateSource) {
         this.stepTreeBuilder = new DefaultBuilder(templateSource);
     }
 
@@ -28,19 +28,18 @@ public class TemplateBuilder {
 
     /**
      * register a shared converter instance with type name
-     *
+     * <p>
      * the converter should be:
      * 1.with only immutable state, functional instance which simply converts text to specified type
      * 2.without any runtime-changing state
      * 3.with output type the Json library can handle
      *
-     * @see JsonDelegate
-     *
-     * thus the template can parse documents thread safely and consistently
-     *
      * @param typeName  the name as type annotation in template file
      * @param converter the shared functional instance converts text into value with type
      * @return this for chaining
+     * @see JsonDelegate
+     * <p>
+     * thus the template can parse documents thread safely and consistently
      */
     public TemplateBuilder registerConverter(String typeName, TextConverter converter) {
         factoryBuilder.register(typeName, converter);
