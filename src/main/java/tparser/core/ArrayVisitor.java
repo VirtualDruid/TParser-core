@@ -244,7 +244,7 @@ public class ArrayVisitor extends StructPlaceHolderVisitor {
 
     @Override
     public String toString() {
-        return String.format("ARRAY NAME:%s GROUP:%s", name, StringUtil.join(classifier.classifications.iterator(), " / "));
+        return String.format("ARRAY NAME:%s GROUP:%s", name, classifier.toString());
     }
 
     //array classifier's lazy-construction state

@@ -13,27 +13,29 @@ interface TextExtractor {
     TextExtractor outerHtml = Element::outerHtml;
 
 
-    //debug usage
+    /**
+     * get readable tag of a extractor
+     */
     static String getTypeTag(TextExtractor extractor) {
         if (extractor == ownText) {
-            return "$own-text";
+            return "{$own-text}";
         }
         if (extractor == fullText) {
-            return "$'#-full-text";
+            return "{$'#-full-text}";
         }
         if (extractor == innerHtml) {
-            return "$#-inner-html";
+            return "{$#-inner-html}";
         }
         if (extractor == outerHtml) {
-            return "*$*#-outer-html";
+            return "*{$*#-outer-html}";
         }
         if (extractor instanceof AttrValueTarget) {
             AttrValueTarget attrValueTarget = (AttrValueTarget) extractor;
-            return String.format("attr-value[%s=$]", attrValueTarget.attrKey);
+            return attrValueTarget.toString();
         }
         if (extractor instanceof AttrKeyTarget) {
-            AttrKeyTarget attrValueTarget = (AttrKeyTarget) extractor;
-            return String.format("attr-key[$=%s]", attrValueTarget.attrValue);
+            AttrKeyTarget attrKeyTarget = (AttrKeyTarget) extractor;
+            return attrKeyTarget.toString();
         }
         throw new IllegalArgumentException("unknown type extractor");
     }
@@ -52,14 +54,14 @@ interface TextExtractor {
 
         @Override
         public String toString() {
-            return String.format("attr-value[%s=$]", attrKey);
+            return String.format("attr-value[%s={$}]", attrKey);
         }
     }
 
     class AttrKeyTarget implements TextExtractor {
         private String attrValue;
 
-        public AttrKeyTarget(String attrValue) {
+        AttrKeyTarget(String attrValue) {
             this.attrValue = attrValue;
         }
 
@@ -77,7 +79,7 @@ interface TextExtractor {
 
         @Override
         public String toString() {
-            return String.format("attr-key[$=%s]", attrValue);
+            return String.format("attr-key[{$}=%s]", attrValue);
         }
     }
 

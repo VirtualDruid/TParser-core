@@ -110,6 +110,6 @@ public class ObjectVisitor extends StructPlaceHolderVisitor {
 
     @Override
     public String toString() {
-        return String.format("OBJECT NAME:%s GROUP:%s", name, StringUtil.join(classifier.classifications.iterator(), " / "));
+        return String.format("OBJECT NAME:%s GROUP:%s", name, classifier.toString());
     }
 }

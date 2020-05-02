@@ -24,9 +24,6 @@ abstract class Delimiter {
     abstract boolean checkShouldSplit(Element root, Element element);
 
 
-    /**
-     *
-     */
     abstract void onStartOfParent();
 
     abstract void onEndOfParent();

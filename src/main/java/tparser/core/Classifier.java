@@ -1,5 +1,6 @@
 package tparser.core;
 
+import org.jsoup.internal.StringUtil;
 import org.jsoup.nodes.Element;
 import org.jsoup.nodes.Node;
 import org.jsoup.select.Elements;
@@ -56,6 +57,13 @@ abstract class Classifier {
         //lock to unmodifiable
         classifications = Collections.unmodifiableList(classifications);
     }
+
+    @Override
+    public String toString() {
+        return StringUtil.join(classifications.iterator(), " / ");
+    }
+
+
     /*---instance method---*/
 
     /*---inner classes---*/

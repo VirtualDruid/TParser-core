@@ -4,13 +4,15 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Evaluator;
 
 class DOMSearchMethod {
-    private DOMSearchMethod(){}
+    private DOMSearchMethod() {
+    }
 //
 //    void select(Element root, ResultCollector observer);
 
     interface FirstSelector {
         Element select(Element root, Evaluator evaluator);
-//        FirstSelector includeRoot     = SelectHelper::selectFirst;
+
+        //        FirstSelector includeRoot     = SelectHelper::selectFirst;
         FirstSelector excludeRoot     = SelectHelper::selectFirstExcludeRoot;
         FirstSelector firstInChildren = SelectHelper::selectFirstInChildren;
     }

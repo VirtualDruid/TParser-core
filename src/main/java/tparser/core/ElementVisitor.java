@@ -1,6 +1,7 @@
 package tparser.core;
 
 import com.google.code.regexp.Matcher;
+import org.jsoup.internal.StringUtil;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.jsoup.select.Evaluator;
@@ -16,7 +17,7 @@ public class ElementVisitor extends StepNode {
 
     private StructPlaceHolderVisitor       parentStructure;
     private Evaluator                      selfEval;
-    //    private DOMSearchMethod.First          searchMethod;
+    private DOMSearchMethod.Scope          scope;
     private DOMSearchMethod.FirstSelector  firstSelector;
     private DOMSearchMethod.ExistenceCheck checker;
     private List<ExtractionProcessor>      processors = new ArrayList<>();
@@ -193,7 +194,7 @@ public class ElementVisitor extends StepNode {
         this.checker = SearchOptionAttributeHelper.createChecker(attrs);
 //        this.searchMethod = SearchMethodHelper.searchFirstMethod(attrs);
 
-        DOMSearchMethod.Scope scope = SearchOptionAttributeHelper.scope(attrs);
+        this.scope = SearchOptionAttributeHelper.scope(attrs);
         this.firstSelector = SearchOptionAttributeHelper.singleSelector(scope);
         Evaluator defaultEval = new CombiningEvaluator.And(combines);
 
@@ -361,17 +362,8 @@ public class ElementVisitor extends StepNode {
      */
     @Override
     public String toString() {
-        StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append("EXTRACT").append(": ");
-        if (hasExtractions) {
-            for (ExtractionProcessor processor : processors) {
-                stringBuilder.append(" ");
-                stringBuilder.append(processor.toString());
-            }
-        } else {
-            stringBuilder.append("no extractor");
-        }
-        return String.format("SELECT: %s %s", selfEval.toString(), stringBuilder.toString());
+        return String.format("SELECT IN %s: %s EXTRACT: %s", scope, selfEval.toString(), StringUtil.join(processors.iterator(), " , "));
     }
+
 
 }
