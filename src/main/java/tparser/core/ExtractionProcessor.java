@@ -19,6 +19,7 @@ abstract class ExtractionProcessor {
     abstract <JO, JA> void process(ParseResult<JO, JA> state, Element element, int index)
             throws HtmlParseException;
 
+
     static class RegexProcessor extends ExtractionProcessor {
         //need access to named group names
         private Pattern             pattern;
@@ -65,10 +66,11 @@ abstract class ExtractionProcessor {
             if (shouldFailNotMatch && !found) {
                 throw new HtmlParseException.RegexNotMatch(String.format("pattern: %s not match", pattern.toString()));
             }
-            boolean shouldNull = !found || NullWrapper.isNullRepresent(element);
+            boolean isNull     = NullWrapper.isNullRepresent(element);
+            boolean shouldNull = !found || isNull;
             for (TypeProcessor processor : typeProcessors) {
-                String result = shouldNull ? null : matcher.group(processor.getProperty());
-                processor.process(state, result, index);
+                String result = shouldNull ? null : matcher.group(processor.property);
+                processor.process(state, result, isNull ? null : element, index);
             }
         }
 
@@ -91,8 +93,9 @@ abstract class ExtractionProcessor {
 
         @Override
         <JO, JA> void process(ParseResult<JO, JA> state, Element element, int index) {
-            String result = NullWrapper.isNullRepresent(element) ? null : preExtractor.extract(element);
-            processor.process(state, result, index);
+            boolean isNull = NullWrapper.isNullRepresent(element);
+            String  result = isNull ? null : preExtractor.extract(element);
+            processor.process(state, result, isNull ? null : element, index);
         }
 
         @Override

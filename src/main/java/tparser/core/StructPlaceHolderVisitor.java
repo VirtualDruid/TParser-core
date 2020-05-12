@@ -5,6 +5,7 @@ import org.jsoup.select.Evaluator;
 
 import java.util.LinkedHashSet;
 
+@SuppressWarnings("WeakerAccess")
 public abstract class StructPlaceHolderVisitor extends StepNode {
     private static final String                ATTR_NAME  = "name";
     private static final String                EMPTY      = "";
@@ -31,8 +32,6 @@ public abstract class StructPlaceHolderVisitor extends StepNode {
             String property,
             Object result,
             int index);
-
-//    abstract <JO, JA> void resolveStack(ParseResult<JO, JA> state);
 
     void addClassification(Evaluator evaluator, DOMSearchMethod.Scope scope) {
         onAddEvaluator(evaluator, false);

@@ -37,9 +37,9 @@ public class ElementVisitor extends StepNode {
         boolean                                                 isDirectChildOfStructure;
         StructPlaceHolderVisitor                                parentPlaceholder;
         AttributeContainer<? extends Map.Entry<String, String>> attrs   = CollectionHelper.emptyContainer();
-        TextConverterFactory                                    factory;
+        ConverterFactory                                        factory;
 
-        PendingState(String tagName, boolean isDirectChildOfStructure, StructPlaceHolderVisitor parentPlaceholder, TextConverterFactory factory) {
+        PendingState(String tagName, boolean isDirectChildOfStructure, StructPlaceHolderVisitor parentPlaceholder, ConverterFactory factory) {
             this.tagName = tagName;
             this.isDirectChildOfStructure = isDirectChildOfStructure;
             this.parentPlaceholder = parentPlaceholder;
@@ -56,7 +56,7 @@ public class ElementVisitor extends StepNode {
             String tagName,
             boolean isDirectChildOfStructure,
             StructPlaceHolderVisitor parentPlaceholder,
-            TextConverterFactory factory) {
+            ConverterFactory factory) {
         super(tagName);
         this.state = new PendingState(tagName, isDirectChildOfStructure, parentPlaceholder, factory);
     }
@@ -114,7 +114,7 @@ public class ElementVisitor extends StepNode {
             boolean isDirectChildOfStructure,
             StructPlaceHolderVisitor parentPlaceholder,
             AttributeContainer<? extends Map.Entry<String, String>> attrs,
-            TextConverterFactory factory) {
+            ConverterFactory factory) {
 
         super(tagName);
         initialize(tagName, ownText, isDirectChildOfStructure, parentPlaceholder, attrs, factory);
@@ -126,7 +126,7 @@ public class ElementVisitor extends StepNode {
             boolean isDirectChildOfStructure,
             StructPlaceHolderVisitor parentPlaceholder,
             AttributeContainer<? extends Map.Entry<String, String>> attrs,
-            TextConverterFactory factory) {
+            ConverterFactory factory) {
 
         this.isDirectChildOfStructure = isDirectChildOfStructure;
         this.parentStructure = parentPlaceholder;
@@ -205,7 +205,7 @@ public class ElementVisitor extends StepNode {
 
     }
 
-    ElementVisitor(Element selfTemplate, StructPlaceHolderVisitor parentPlaceholder, TextConverterFactory factory) {
+    ElementVisitor(Element selfTemplate, StructPlaceHolderVisitor parentPlaceholder, ConverterFactory factory) {
         super(selfTemplate.tagName());
         initialize(
                 selfTemplate.tagName(),

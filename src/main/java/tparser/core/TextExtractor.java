@@ -11,6 +11,7 @@ interface TextExtractor {
     TextExtractor fullText  = Element::text;
     TextExtractor innerHtml = Element::html;
     TextExtractor outerHtml = Element::outerHtml;
+    TextExtractor none      = (element) -> null;
 
 
     /**

@@ -42,7 +42,7 @@ public class Template {
      * @param builder tree builder implementation
      * @param factory produces text converter by given type name
      */
-    Template(StepTreeBuilder builder, TextConverterFactory factory) {
+    Template(StepTreeBuilder builder, ConverterFactory factory) {
         long start = System.nanoTime();
         root = builder.build(factory);
         parser = new TreeParseFlow(root);

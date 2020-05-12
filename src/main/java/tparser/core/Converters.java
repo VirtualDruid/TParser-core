@@ -9,11 +9,20 @@ import java.util.*;
 /**
  * utility class for TextConverter
  */
-@SuppressWarnings("unused")
+@SuppressWarnings({"unused", "WeakerAccess"})
+
+
 public class Converters {
     private Converters() {
     }
 
+    /**
+     * the 'Redundant Escape' must not be removed
+     * the java Regex is platform sensitive since it may use different Regex Engine
+     * <p>
+     * on the Android platform
+     * the missing escape will result in throwing PatterSyntaxException by ICU Engine
+     */
     //<br>
     private static final Pattern PATTERN_HTML_LINE_BREAK_TAG  = Pattern.compile("<br>");
     //<br\/> -> <br/>
@@ -26,94 +35,92 @@ public class Converters {
     /**
      * these are a part of public api to construct advanced converter or aliasing defaults
      */
-    public static final TextConverter<String>  toString  = (text) -> text;
-    @SuppressWarnings("WeakerAccess")
-    public static final TextConverter<Integer> toInteger = Integer::valueOf;
-    @SuppressWarnings("WeakerAccess")
-    public static final TextConverter<Long>    toLong    = Long::valueOf;
-    @SuppressWarnings("WeakerAccess")
-    public static final TextConverter<Short>   toShort   = Short::valueOf;
-    @SuppressWarnings("WeakerAccess")
-    public static final TextConverter<Byte>    toByte    = Byte::valueOf;
-    @SuppressWarnings("WeakerAccess")
-    public static final TextConverter<Float>   toFloat   = Float::valueOf;
-    @SuppressWarnings("WeakerAccess")
-    public static final TextConverter<Double>  toDouble  = Double::valueOf;
-
-    @SuppressWarnings("WeakerAccess")
-    public static final TextConverter<Boolean> toBoolean = Boolean::valueOf;
+    public static final TextConverter<String>  toString  = (text, _element) -> text;
+    public static final TextConverter<Integer> toInteger = (text, _element) -> Integer.valueOf(text);
+    public static final TextConverter<Long>    toLong    = (text, _element) -> Long.valueOf(text);
+    public static final TextConverter<Short>   toShort   = (text, _element) -> Short.valueOf(text);
+    public static final TextConverter<Byte>    toByte    = (text, _element) -> Byte.valueOf(text);
+    public static final TextConverter<Float>   toFloat   = (text, _element) -> Float.valueOf(text);
+    public static final TextConverter<Double>  toDouble  = (text, _element) -> Double.valueOf(text);
+    public static final TextConverter<Boolean> toBoolean = (text, _element) -> Boolean.valueOf(text);
     /*--  built-in  --*/
 
     /*-- additional --*/
-    public static final TextConverter<String>     replaceAnyLineBreak   = (text) -> PATTERN_ANY_LINE_BREAK_TAG.matcher(text).replaceAll(LINE_BREAK);
-    public static final TextConverter<String>     htmlReplaceLinebreak  = (text) -> PATTERN_HTML_LINE_BREAK_TAG.matcher(text).replaceAll(LINE_BREAK);
-    public static final TextConverter<String>     xhtmlReplaceLinebreak = (text) -> PATTERN_XHTML_LINE_BREAK_TAG.matcher(text).replaceAll(LINE_BREAK);
-    public static final TextConverter<String>     discardEmpty          = (text) -> text.isEmpty() ? null : text;
-    public static final TextConverter<BigInteger> toBigInteger          = BigInteger::new;
-    public static final TextConverter<BigDecimal> toBigDecimal          = BigDecimal::new;
-    public static final TextConverter<byte[]>     decodeBase64          = Base64.getDecoder()::decode;
-    public static final TextConverter<Boolean>    exists                = Objects::nonNull;
+    public static final TextConverter<String> replaceAnyLineBreak   = (text, _element) -> PATTERN_ANY_LINE_BREAK_TAG.matcher(text).replaceAll(LINE_BREAK);
+    public static final TextConverter<String> htmlReplaceLinebreak  = (text, _element) -> PATTERN_HTML_LINE_BREAK_TAG.matcher(text).replaceAll(LINE_BREAK);
+    public static final TextConverter<String> xhtmlReplaceLinebreak = (text, _element) -> PATTERN_XHTML_LINE_BREAK_TAG.matcher(text).replaceAll(LINE_BREAK);
+
+    public static final TextConverter<String>     emptyAsNull = (text, _element) -> text.isEmpty() ? null : text;
+    public static final NullableConverter<String> nullAsEmpty = (text, _element) -> text == null ? "" : text;
+
+    public static final TextConverter<BigInteger> toBigInteger = (text, _element) -> new BigInteger(text);
+    public static final TextConverter<BigDecimal> toBigDecimal = (text, _element) -> new BigDecimal(text);
+
+    public static final TextConverter<byte[]> decodeBase64 = (text, _element) -> Base64.getDecoder().decode(text);
+
+    public static final NullableConverter<Boolean> textNotNull           = (text, _element) -> text != null;
+    public static final NullableConverter<Boolean> elementExists         = (_text, context) -> context != null;
     /*-- additional --*/
 
-    /**
-     * varargs version
-     * <p>
-     * convenient method to create a converter with series of steps and a specified type output
-     *
-     * @param out                    list of converters where the text will be processed
-     * @param firstInput             require at least one arg to ensure method call signature
-     * @param textProcessingPipeItem converter that process the final output
-     * @param <T>                    the final result type
-     * @return converter outputs T type
-     */
-    @SafeVarargs
-    //all converters into array are TextConverter<String> ensured by compiler
-    @SuppressWarnings("unchecked")
-    public static <T> TextConverter<T> pipe(TextConverter<T> out, TextConverter<String> firstInput, TextConverter<String>... textProcessingPipeItem) {
-        TextConverter[] converters = new TextConverter[textProcessingPipeItem.length + 1];
-        System.arraycopy(textProcessingPipeItem, 0, converters, 1, textProcessingPipeItem.length);
-        converters[0] = firstInput;
-        return pipe(Arrays.asList(converters), out);
-    }
+//    /**
+//     * varargs version
+//     * <p>
+//     * convenient method to create a converter with series of steps and a specified type output
+//     *
+//     * @param out                    list of converters where the text will be processed
+//     * @param firstInput             require at least one arg to ensure method call signature
+//     * @param textProcessingPipeItem converter that process the final output
+//     * @param <T>                    the final result type
+//     * @return converter outputs T type
+//     */
+//    @SafeVarargs
+//    //all converters into array are TextConverter<String> ensured by compiler
+//    @SuppressWarnings("unchecked")
+//    public static <T> TextConverter<T> pipe(TextConverter<T> out, TextConverter<String> firstInput, TextConverter<String>... textProcessingPipeItem) {
+//        TextConverter[] converters = new TextConverter[textProcessingPipeItem.length + 1];
+//        System.arraycopy(textProcessingPipeItem, 0, converters, 1, textProcessingPipeItem.length);
+//        converters[0] = firstInput;
+//        return pipe(Arrays.asList(converters), out);
+//    }
 
-    /**
-     * convenient method to create a converter with series of steps and a specified type output
-     *
-     * @param textProcessingPipe list of converters where the text will be processed
-     * @param out                converter that process the final output
-     * @param <T>                the final result type
-     * @return converter outputs T type
-     */
-    @SuppressWarnings("WeakerAccess")
-    public static <T> TextConverter<T> pipe(List<TextConverter<String>> textProcessingPipe, TextConverter<T> out) {
-        return new Concat<>(new Pipe(textProcessingPipe), out);
-    }
+//    /**
+//     * convenient method to create a converter with series of steps and a specified type output
+//     *
+//     * @param textProcessingPipe list of converters where the text will be processed
+//     * @param out                converter that process the final output
+//     * @param <T>                the final result type
+//     * @return converter outputs T type
+//     */
+//    @SuppressWarnings("WeakerAccess")
+//    public static <T> TextConverter<T> pipe(List<TextConverter<String>> textProcessingPipe, TextConverter<T> out) {
+//        return new Concat<>(new Pipe(textProcessingPipe), out);
+//    }
+//
+//    @SafeVarargs
+//    @SuppressWarnings("unchecked")
+//    public static TextConverter<String> pipe(TextConverter<String> firstInput, TextConverter<String>... textProcessingPipeItem) {
+//        TextConverter[] converters = new TextConverter[textProcessingPipeItem.length + 1];
+//        System.arraycopy(textProcessingPipeItem, 0, converters, 1, textProcessingPipeItem.length);
+//        converters[0] = firstInput;
+//        return pipe(Arrays.asList(converters));
+//    }
 
-    @SafeVarargs
-    @SuppressWarnings("unchecked")
-    public static TextConverter<String> pipe(TextConverter<String> firstInput, TextConverter<String>... textProcessingPipeItem) {
-        TextConverter[] converters = new TextConverter[textProcessingPipeItem.length + 1];
-        System.arraycopy(textProcessingPipeItem, 0, converters, 1, textProcessingPipeItem.length);
-        converters[0] = firstInput;
-        return pipe(Arrays.asList(converters));
-    }
-
-    /**
-     * convenient method to create a converter with series of steps which still outputs text
-     *
-     * @param textProcessingPipe list of converters where the text will be processed
-     * @return converter outputs String type
-     */
-    @SuppressWarnings("WeakerAccess")
-    public static TextConverter<String> pipe(List<TextConverter<String>> textProcessingPipe) {
-        return new Pipe(textProcessingPipe);
-    }
+//    /**
+//     * convenient method to create a converter with series of steps which still outputs text
+//     *
+//     * @param textProcessingPipe list of converters where the text will be processed
+//     * @return converter outputs String type
+//     */
+//    @SuppressWarnings("WeakerAccess")
+//    public static TextConverter<String> pipe(List<TextConverter<String>> textProcessingPipe) {
+//        return new Pipe(textProcessingPipe);
+//    }
 
     static ConverterFactoryBuilder factoryBuilder() {
         return new ConverterFactoryBuilder();
     }
 
-    static TextConverterFactory defaultFactory() {
+    static ConverterFactory defaultFactory() {
         return BuiltinFactory.INSTANCE;
     }
 
@@ -121,45 +128,45 @@ public class Converters {
         return BuiltinFactory.STRING;
     }
 
-    private static class Concat<O> implements TextConverter<O> {
-        private TextConverter<String> in;
-        private TextConverter<O>      out;
-
-        Concat(TextConverter<String> in, TextConverter<O> out) {
-            this.in = in;
-            this.out = out;
-        }
-
-        @Override
-        public O valueOf(String text) {
-            return out.valueOf(in.valueOf(text));
-        }
-    }
-
-    private static class Pipe implements TextConverter<String> {
-        List<TextConverter<String>> textProcessingPipe;
-
-        Pipe(List<TextConverter<String>> textProcessingPipe) {
-            this.textProcessingPipe = Collections.unmodifiableList(new ArrayList<>(textProcessingPipe));
-        }
-
-        @Override
-        public String valueOf(String text) {
-            String result = text;
-            for (TextConverter<String> converter : textProcessingPipe) {
-                result = converter.valueOf(result);
-            }
-            return result;
-        }
-    }
+//    private static class Concat<O> implements TextConverter<O> {
+//        private TextConverter<String> in;
+//        private TextConverter<O>      out;
+//
+//        Concat(TextConverter<String> in, TextConverter<O> out) {
+//            this.in = in;
+//            this.out = out;
+//        }
+//
+//        @Override
+//        public O valueOf(String text) {
+//            return out.valueOf(in.valueOf(text));
+//        }
+//    }
+//
+//    private static class Pipe implements TextConverter<String> {
+//        List<TextConverter<String>> textProcessingPipe;
+//
+//        Pipe(List<TextConverter<String>> textProcessingPipe) {
+//            this.textProcessingPipe = Collections.unmodifiableList(new ArrayList<>(textProcessingPipe));
+//        }
+//
+//        @Override
+//        public String valueOf(String text) {
+//            String result = text;
+//            for (TextConverter<String> converter : textProcessingPipe) {
+//                result = converter.valueOf(result);
+//            }
+//            return result;
+//        }
+//    }
 
     /**
      * basic built-in primitives converters that cannot be overwrite
      */
-    private static class BuiltinFactory implements TextConverterFactory {
+    private static class BuiltinFactory implements ConverterFactory {
         static final BuiltinFactory INSTANCE;
 
-        private static final Map<String, TextConverter> DEFAULT;
+        private static final Map<String, Converter> DEFAULT;
 
         /*---- primitives ----*/
         private static String STRING  = lowerCaseType(String.class);
@@ -181,7 +188,7 @@ public class Converters {
         }
 
         static {
-            Map<String, TextConverter> map = new LinkedHashMap<>(16);
+            Map<String, Converter> map = new LinkedHashMap<>(16);
             map.put(STRING, toString);
 
             map.put(INTEGER, toInteger);
@@ -200,7 +207,7 @@ public class Converters {
 
 
         @Override
-        public TextConverter create(String type) {
+        public Converter create(String type) {
             //case insensitive
             return DEFAULT.get(type.toLowerCase());
         }
@@ -212,32 +219,32 @@ public class Converters {
         }
     }
 
-    private static class EmptyFactory implements TextConverterFactory {
-        static final TextConverterFactory INSTANCE = new EmptyFactory();
+    private static class EmptyFactory implements ConverterFactory {
+        static final ConverterFactory INSTANCE = new EmptyFactory();
 
         private EmptyFactory() {
         }
 
         @Override
-        public TextConverter create(String type) {
+        public Converter create(String type) {
             return null;
         }
     }
 
-    private static class InternalFactory implements TextConverterFactory {
-        private TextConverterFactory       defaultFactory = BuiltinFactory.INSTANCE;
-        private Map<String, TextConverter> additional;
-        private TextConverterFactory       additionalFactory;
+    private static class InternalFactory implements ConverterFactory {
+        private ConverterFactory       defaultFactory = BuiltinFactory.INSTANCE;
+        private Map<String, Converter> additional;
+        private ConverterFactory       additionalFactory;
 
 
-        InternalFactory(Map<String, TextConverter> additional, TextConverterFactory additionalFactory) {
+        InternalFactory(Map<String, Converter> additional, ConverterFactory additionalFactory) {
             this.additional = Collections.unmodifiableMap(additional);
             this.additionalFactory = additionalFactory;
         }
 
         @Override
-        public TextConverter create(String type) {
-            TextConverter converter;
+        public Converter create(String type) {
+            Converter converter;
             if ((converter = defaultFactory.create(type)) != null) {
                 return converter;
             }
@@ -253,26 +260,26 @@ public class Converters {
     }
 
     static final class ConverterFactoryBuilder {
-        private TextConverterFactory additionalFactory = EmptyFactory.INSTANCE;
+        private ConverterFactory additionalFactory = EmptyFactory.INSTANCE;
 
-        private Map<String, TextConverter> map = new HashMap<>();
+        private Map<String, Converter> map = new HashMap<>();
 
-        void registerFactory(TextConverterFactory factory) {
+        void registerFactory(ConverterFactory factory) {
             additionalFactory = factory;
         }
 
-        void register(String typeName, TextConverter converter) {
+        void register(String typeName, Converter converter) {
             if (BuiltinFactory.isDefault(typeName)) {
                 throw new TemplateSyntaxError(String.format("cannot overwrite builtin type: %s", typeName.toLowerCase()));
             }
             map.put(typeName, converter);
         }
 
-        TextConverterFactory build() {
+        ConverterFactory build() {
             if (additionalFactory == EmptyFactory.INSTANCE && map.size() == 0) {
                 return BuiltinFactory.INSTANCE;
             }
-            Map<String, TextConverter> hold = new HashMap<>(CollectionHelper.enoughHashTableCapacity(map.size()));
+            Map<String, Converter> hold = new HashMap<>(CollectionHelper.enoughHashTableCapacity(map.size()));
             hold.putAll(map);
             return new InternalFactory(hold, additionalFactory);
         }

@@ -6,7 +6,7 @@ import org.jsoup.select.Evaluator;
 import java.util.Objects;
 
 /**
- * represent the not-found element to preserve the hierarchy of parsing process
+ * internally use for represent the not-found element to preserve the hierarchy of parsing process
  */
 final class NullWrapper extends Element {
     private static final String TAG = "null";
@@ -41,4 +41,7 @@ final class NullWrapper extends Element {
         return new NullWrapper(parent);
     }
 
+//    static Element unwarp(Element element) {
+//        return isNullRepresent(element) ? null : element;
+//    }
 }

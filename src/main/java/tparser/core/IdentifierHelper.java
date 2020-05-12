@@ -9,15 +9,16 @@ import java.util.Map;
 
 
 class IdentifierHelper {
-    private static final String GROUP_IDENTIFIER      = "identifier";
-    private static final String ANNOTATION_INNER_HTML = "#";
-    private static final String ANNOTATION_OUTER_HTML = "*#";
-    private static final String ANNOTATION_FULL_TEXT  = "'#";
+    private static final String GROUP_IDENTIFIER        = "identifier";
+    private static final String ANNOTATION_INNER_HTML   = "#";
+    private static final String ANNOTATION_OUTER_HTML   = "*#";
+    private static final String ANNOTATION_FULL_TEXT    = "'#";
+    private static final String ANNOTATION_EXTRACT_NONE = "!#";
 
     /**
      * the 'Redundant Escape' must not be removed
      * the java Regex is platform sensitive since it may use different Regex Engine
-     *
+     * <p>
      * on the Android platform
      * the missing escape will result in throwing PatterSyntaxException by ICU Engine
      */
@@ -97,6 +98,26 @@ class IdentifierHelper {
         return actualIdentifier.startsWith(ANNOTATION_FULL_TEXT);
     }
 
+    private static boolean isNone(String actualIdentifier) {
+        return actualIdentifier.startsWith(ANNOTATION_EXTRACT_NONE);
+    }
+
+    private static TextExtractor extractor(String identifier) {
+        TextExtractor extractor;
+        if (isInnerHtml(identifier)) {
+            extractor = TextExtractor.innerHtml;
+        } else if (isOuterHtml(identifier)) {
+            extractor = TextExtractor.outerHtml;
+        } else if (isFullText(identifier)) {
+            extractor = TextExtractor.fullText;
+        } else if (isNone(identifier)) {
+            extractor = TextExtractor.none;
+        } else {
+            extractor = TextExtractor.ownText;
+        }
+        return extractor;
+    }
+
     private static String getTypeArrayLiteral(Matcher matcher) {
         return matcher.group(GROUP_TYPES);
     }
@@ -120,19 +141,19 @@ class IdentifierHelper {
     static ExtractionProcessor createElementTextProcessor(
             Matcher matchTextIdentifier,
             StructPlaceHolderVisitor structure,
-            TextConverterFactory factory) {
+            ConverterFactory factory) {
 
         String        identifier = getActualIdentifier(matchTextIdentifier);
-        TextExtractor extractor;
-        if (isInnerHtml(identifier)) {
-            extractor = TextExtractor.innerHtml;
-        } else if (isOuterHtml(identifier)) {
-            extractor = TextExtractor.outerHtml;
-        } else if (isFullText(identifier)) {
-            extractor = TextExtractor.fullText;
-        } else {
-            extractor = TextExtractor.ownText;
-        }
+        TextExtractor extractor  = extractor(identifier);
+//        if (isInnerHtml(identifier)) {
+//            extractor = TextExtractor.innerHtml;
+//        } else if (isOuterHtml(identifier)) {
+//            extractor = TextExtractor.outerHtml;
+//        } else if (isFullText(identifier)) {
+//            extractor = TextExtractor.fullText;
+//        } else {
+//            extractor = TextExtractor.ownText;
+//        }
         return createExtractionProcessor(matchTextIdentifier, structure, extractor, factory);
     }
 
@@ -141,7 +162,7 @@ class IdentifierHelper {
             boolean isKeyTarget,
             Map.Entry<String, String> attribute,
             StructPlaceHolderVisitor structure,
-            TextConverterFactory factory) {
+            ConverterFactory factory) {
 
         TextExtractor extractor = isKeyTarget ?
                 new TextExtractor.AttrKeyTarget(attribute.getValue()) :
@@ -156,8 +177,8 @@ class IdentifierHelper {
     }
 
     //quick fail when a template is building and a invalid type annotation occurs
-    private static TextConverter createAndValidateConverter(TextConverterFactory factory, String type) {
-        TextConverter converter = factory.create(type);
+    private static Converter createAndValidateConverter(ConverterFactory factory, String type) {
+        Converter converter = factory.create(type);
         if (converter == null) {
             throw new TemplateSyntaxError(String.format("unknown converter type: %s", type));
         }
@@ -168,7 +189,7 @@ class IdentifierHelper {
             Matcher matchIdentifier,
             StructPlaceHolderVisitor structure,
             TextExtractor extractor,
-            TextConverterFactory factory) {
+            ConverterFactory factory) {
 
         String   identifier = getActualIdentifier(matchIdentifier);
         Matcher  matchRegex = matchRegexAnnotation(identifier);
@@ -188,7 +209,7 @@ class IdentifierHelper {
                 // ex: [Integer,Integer] {(?<a>)(?<b>)(?<c>)} -> a: Integer, b: Integer, c: String
                 String type = i < types.length ? types[i] : Converters.defaultConverterType();
 
-                TextConverter converter = createAndValidateConverter(factory, type);
+                Converter converter = createAndValidateConverter(factory, type);
                 processors.add(new TypeProcessor(structure, name, converter, type));
             }
             return new ExtractionProcessor.RegexProcessor(extractor, regex, shouldFailNotMatch(matchRegex), processors);
@@ -196,8 +217,8 @@ class IdentifierHelper {
             checkTypePropertiesRange(types.length, 1);
             String type = types.length == 0 ? Converters.defaultConverterType() : types[0];
             structure.addProperty(identifier);
-            TextConverter converter = createAndValidateConverter(factory, type);
-            String        property  = getPropertyName(identifier);
+            Converter converter = createAndValidateConverter(factory, type);
+            String    property  = getPropertyName(identifier);
             return new ExtractionProcessor.SimpleProcessor(extractor, new TypeProcessor(structure, property, converter, type));
         }
 

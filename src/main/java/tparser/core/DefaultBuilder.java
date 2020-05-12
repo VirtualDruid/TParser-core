@@ -9,7 +9,7 @@ import java.util.ArrayDeque;
 
 class DefaultBuilder implements StepTreeBuilder, NodeVisitor {
     private Element                              templateRoot;
-    private TextConverterFactory                 factory;
+    private ConverterFactory                     factory;
     private StepNode                             root;
     private ArrayDeque<StepNode>                 parentStack = new ArrayDeque<>();
     private ArrayDeque<StructPlaceHolderVisitor> structStack = new ArrayDeque<>();
@@ -19,7 +19,7 @@ class DefaultBuilder implements StepTreeBuilder, NodeVisitor {
     }
 
     @Override
-    public StepNode build(TextConverterFactory converterFactory) {
+    public StepNode build(ConverterFactory converterFactory) {
         this.factory = converterFactory;
         NodeTraversor.traverse(this, templateRoot);
         return root;
@@ -57,7 +57,7 @@ class DefaultBuilder implements StepTreeBuilder, NodeVisitor {
         }
     }
 
-    private static StepNode createStepNode(Element template, StructPlaceHolderVisitor parent, TextConverterFactory factory) {
+    private static StepNode createStepNode(Element template, StructPlaceHolderVisitor parent, ConverterFactory factory) {
         if (ArrayVisitor.TAG.equals(template.tagName())) {
             return new ArrayVisitor(template);
         }

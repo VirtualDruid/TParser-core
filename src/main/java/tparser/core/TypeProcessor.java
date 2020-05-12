@@ -1,20 +1,25 @@
 package tparser.core;
 
+import org.jsoup.nodes.Element;
+
 class TypeProcessor {
     private final StructPlaceHolderVisitor structure;
-    private final String                   property;
+    final         String                   property;
     private final String                   typeName;
-    private final TextConverter            converter;
+    private final Converter                converter;
 
-    TypeProcessor(StructPlaceHolderVisitor structure, String property, TextConverter converter, String typeName) {
+    TypeProcessor(StructPlaceHolderVisitor structure, String property, Converter converter, String typeName) {
         this.property = property;
         this.structure = structure;
         this.converter = converter;
         this.typeName = typeName;
     }
 
-    <JO, JA> void process(ParseResult<JO, JA> state, String result, int index) {
-        structure.onExtract(state, property, result == null ? null : converter.valueOf(result), index);
+    <JO, JA> void process(ParseResult<JO, JA> state, String result, Element context, int index) {
+        Object value = converter.shouldConvert(result, context) ?
+                converter.convert(result, context) :
+                null;
+        structure.onExtract(state, property, value, index);
     }
 
     @Override
@@ -22,7 +27,4 @@ class TypeProcessor {
         return String.format("%s@%s", property, typeName);
     }
 
-    String getProperty() {
-        return property;
-    }
 }

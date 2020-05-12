@@ -29,7 +29,7 @@ public interface JsonDelegate<JO, JA> {
      * @param objectNode json object to contain the value
      * @param key        json key
      * @param value      a pure value of type defined by template
-     * @see TextConverter
+     * @see Converter
      * @see TemplateBuilder
      * <p>
      * <p>
@@ -57,7 +57,7 @@ public interface JsonDelegate<JO, JA> {
      * @param objectNode json object to contain the null
      * @param key        json key
      *
-     * @see TextConverter
+     * @see Converter
      * @see TemplateBuilder
      */
     void putNull(JO objectNode, String key);

@@ -1,11 +1,13 @@
 package tparser.core;
 
+import org.jsoup.nodes.CDataNode;
 import org.jsoup.nodes.Element;
 import org.jsoup.nodes.Node;
 import org.jsoup.select.*;
 
 import java.util.ArrayList;
 
+@SuppressWarnings({"WeakerAccess", "unused"})
 public final class SelectHelper {
     private SelectHelper() {
     }
@@ -13,8 +15,6 @@ public final class SelectHelper {
     /**
      * select first element in given elements matches the query in only fist level
      *
-     * @param elements
-     * @param cssQuery
      * @return null if not found
      */
     public static Element selectFirstIn(Elements elements, String cssQuery) {
@@ -24,8 +24,6 @@ public final class SelectHelper {
     /**
      * select first element in given elements matches the evaluator in only fist level
      *
-     * @param elements
-     * @param eval
      * @return null if not found
      */
     public static Element selectFirstIn(Elements elements, Evaluator eval) {
@@ -62,8 +60,6 @@ public final class SelectHelper {
     /**
      * select first direct child matches the query in only first level
      *
-     * @param root
-     * @param cssQuery
      * @return null if not found
      */
     public static Element selectFirstInChildren(Element root, String cssQuery) {
@@ -73,8 +69,6 @@ public final class SelectHelper {
     /**
      * select first direct child matches the evaluator in only first level
      *
-     * @param root
-     * @param eval
      * @return null if not found
      */
     public static Element selectFirstInChildren(Element root, Evaluator eval) {

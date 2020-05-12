@@ -21,7 +21,7 @@ public class TemplateBuilder {
      * @param factory external converter factory
      * @return this for chaining
      */
-    public TemplateBuilder setExternalConverterFactory(TextConverterFactory factory) {
+    public TemplateBuilder setExternalConverterFactory(ConverterFactory factory) {
         factoryBuilder.registerFactory(factory);
         return this;
     }
@@ -41,7 +41,7 @@ public class TemplateBuilder {
      * <p>
      * thus the template can parse documents thread safely and consistently
      */
-    public TemplateBuilder registerConverter(String typeName, TextConverter converter) {
+    public TemplateBuilder registerConverter(String typeName, Converter converter) {
         factoryBuilder.register(typeName, converter);
         return this;
     }
