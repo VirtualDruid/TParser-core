@@ -68,9 +68,31 @@ class IdentifierHelper {
     }
 
     private static String getPropertyName(String simpleIdentifier) {
-        Matcher matcher = PATTERN_ACTUAL_IDENTIFIER.matcher(simpleIdentifier);
-        matcher.matches();
-        return matcher.group(GROUP_PROPERTY);
+//        Matcher matcher = PATTERN_ACTUAL_IDENTIFIER.matcher(simpleIdentifier);
+//        matcher.matches();
+//        return matcher.group(GROUP_PROPERTY);
+//        String property;
+        if (isInnerHtml(simpleIdentifier)) {
+
+            //#
+            return simpleIdentifier.substring(1);
+        } else if (isOuterHtml(simpleIdentifier)) {
+
+            //*#
+            return simpleIdentifier.substring(2);
+        } else if (isFullText(simpleIdentifier)) {
+
+            //'#
+            return simpleIdentifier.substring(2);
+        } else if (isNone(simpleIdentifier)) {
+
+            //!#
+            return simpleIdentifier.substring(2);
+        } else {
+
+            //own text
+            return simpleIdentifier;
+        }
     }
 
     private static String getActualRegex(Matcher matchRegex) {
@@ -102,7 +124,7 @@ class IdentifierHelper {
         return actualIdentifier.startsWith(ANNOTATION_EXTRACT_NONE);
     }
 
-    private static TextExtractor extractor(String identifier) {
+    private static TextExtractor elementExtractor(String identifier) {
         TextExtractor extractor;
         if (isInnerHtml(identifier)) {
             extractor = TextExtractor.innerHtml;
@@ -144,7 +166,7 @@ class IdentifierHelper {
             ConverterFactory factory) {
 
         String        identifier = getActualIdentifier(matchTextIdentifier);
-        TextExtractor extractor  = extractor(identifier);
+        TextExtractor extractor  = elementExtractor(identifier);
 //        if (isInnerHtml(identifier)) {
 //            extractor = TextExtractor.innerHtml;
 //        } else if (isOuterHtml(identifier)) {
@@ -196,7 +218,7 @@ class IdentifierHelper {
         boolean  isRegex    = matchRegex.matches();
         String[] types      = hasTypes(matchIdentifier) ? parseArray(getTypeArrayLiteral(matchIdentifier)) : new String[0];
         if (isRegex) {
-            Pattern regex = Pattern.compile(getActualRegex(matchRegex));
+            com.google.code.regexp.Pattern regex = Pattern.compile(getActualRegex(matchRegex));
 
             List<String> groupNames = regex.groupNames();
             checkTypePropertiesRange(types.length, groupNames.size());

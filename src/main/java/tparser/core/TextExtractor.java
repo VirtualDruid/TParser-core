@@ -30,6 +30,9 @@ interface TextExtractor {
         if (extractor == outerHtml) {
             return "*{$*#-outer-html}";
         }
+        if (extractor == none) {
+            return "{$!#-none}";
+        }
         if (extractor instanceof AttrValueTarget) {
             AttrValueTarget attrValueTarget = (AttrValueTarget) extractor;
             return attrValueTarget.toString();
