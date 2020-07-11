@@ -98,7 +98,7 @@ Template tparserTemplate = new TemplateBuilder(templateSource)
 
 //extract html data as json
 Document input = ... ;
-ArrayNode jsonResult = tparserTemplate.parse(document,delegate).getResultArray();
+ArrayNode jsonResult = tparserTemplate.parse(input,delegate).getResultArray();
 
 print(objectMapper.writeValueAsString(jsonResult))
 
