@@ -105,5 +105,18 @@ public class ParseResult<JO, JA> {
         return (float) processTimeNanos / nanosInMillis;
     }
 
-
+    @Override
+    public String toString() {
+        return "ParseResult{" +
+                "delegate=" + delegate +
+                ", resultObject=" + resultObject +
+                ", resultArray=" + resultArray +
+                ", rootInput=" + rootInput +
+                ", elementGroupsStack=" + elementGroupsStack +
+                ", selectionStack=" + selectionStack +
+                ", pendingItemStack=" + pendingItemStack +
+                ", start=" + start +
+                ", processTimeNanos=" + processTimeNanos +
+                '}';
+    }
 }

@@ -44,6 +44,12 @@ class TreeParseFlow {
                 } catch (HtmlParseException e) {
                     parseException = e;
                     return FilterResult.STOP;
+                } catch (RuntimeException re) {
+                    //wrap up and re-throw
+                    throw new RuntimeException(
+                            String.format("STEP NODE: %s onVisit: %s", stepNode.toString(), state.toString()),
+                            re
+                    );
                 }
             }
             return FilterResult.CONTINUE;
@@ -53,7 +59,15 @@ class TreeParseFlow {
         public FilterResult tail(Node node, int depth) {
             if (depth != 0) {
                 StepNode stepNode = (StepNode) node;
-                stepNode.onExit(state);
+                try{
+                    stepNode.onExit(state);
+                }catch (RuntimeException re) {
+                    //wrap up and re-throw
+                    throw new RuntimeException(
+                            String.format("STEP NODE: %s onExit: %s", stepNode.toString(), state.toString()),
+                            re
+                    );
+                }
             }
             return FilterResult.CONTINUE;
         }
