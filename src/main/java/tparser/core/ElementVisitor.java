@@ -355,14 +355,14 @@ public class ElementVisitor extends StepNode {
      * format this step in a readable text
      * should only be used for debug purpose
      *
-     * @return String in format: "SELECT: <css selectors> EXTRACT: <extractors>"
+     * @return String in format: "{id} SELECT: {css selector} EXTRACT: {extractors}"
      * <p>
      * selectors represent how to search this element in DOM
      * extractor represent the element's properties to extract
      */
     @Override
     public String toString() {
-        return String.format("SELECT IN %s: %s EXTRACT: %s", scope, selfEval.toString(), StringUtil.join(processors.iterator(), " , "));
+        return String.format("%d SELECT IN %s: %s EXTRACT: %s", id, scope, selfEval.toString(), StringUtil.join(processors.iterator(), " , "));
     }
 
 

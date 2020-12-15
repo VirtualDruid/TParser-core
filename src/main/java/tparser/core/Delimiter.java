@@ -58,7 +58,6 @@ abstract class Delimiter {
         void onEndOfParent() {
             elementGroups.onEndOfSubArray();
         }
-
     }
 
     private static class NoDelimiterFactory implements Factory {
@@ -68,6 +67,12 @@ abstract class Delimiter {
         @Override
         public Delimiter create(ElementGroups elementGroups) {
             return new NoDelimiter(elementGroups);
+        }
+
+
+        @Override
+        public String toString() {
+            return "NO-DELIMITER";
         }
     }
 
@@ -116,6 +121,11 @@ abstract class Delimiter {
         public Delimiter create(ElementGroups elementGroups) {
             return new Between(elementGroups, betweenDelimiter);
         }
+
+        @Override
+        public String toString() {
+            return String.format("BETWEEN-DELIMITER(%s)", betweenDelimiter);
+        }
     }
 
     static class Start extends Delimiter {
@@ -157,6 +167,7 @@ abstract class Delimiter {
         void onEndOfParent() {
             elementGroups.onEndOfSubArray();
         }
+
     }
 
     static class StartFactory implements Factory {
@@ -170,6 +181,11 @@ abstract class Delimiter {
         @Override
         public Delimiter create(ElementGroups elementGroups) {
             return new Start(elementGroups, startDelimiter);
+        }
+
+        @Override
+        public String toString() {
+            return String.format("START-DELIMITER(%s)", startDelimiter);
         }
     }
 
@@ -210,6 +226,8 @@ abstract class Delimiter {
                 elementGroups.removeLastArray();
             }
         }
+
+
     }
 
     static class EndFactory implements Factory {
@@ -222,6 +240,11 @@ abstract class Delimiter {
         @Override
         public Delimiter create(ElementGroups elementGroups) {
             return new End(elementGroups, endDelimiter);
+        }
+
+        @Override
+        public String toString() {
+            return String.format("END-DELIMITER(%s)", endDelimiter);
         }
     }
 
@@ -274,6 +297,7 @@ abstract class Delimiter {
         void onEndOfParent() {
 
         }
+
     }
 
     static class StartEndFactory implements Factory {
@@ -288,6 +312,11 @@ abstract class Delimiter {
         @Override
         public Delimiter create(ElementGroups elementGroups) {
             return new StartEnd(elementGroups, startDelimiter, endDelimiter);
+        }
+
+        @Override
+        public String toString() {
+            return String.format("START-END-DELIMITER(%s/%s)", startDelimiter, endDelimiter);
         }
     }
 }

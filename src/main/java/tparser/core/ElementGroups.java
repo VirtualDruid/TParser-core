@@ -156,4 +156,13 @@ class ElementGroups {
         return groupsFound;
     }
 
+    @Override
+    public String toString() {
+        return "ElementGroups{" +
+                "groupsFound=" + groupsFound +
+                ", currentSubArraySize=" + currentSubArraySize +
+                ", subArraySizes=" + subArraySizes +
+                ", classified=" + classified +
+                '}';
+    }
 }

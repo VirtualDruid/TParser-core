@@ -306,7 +306,10 @@ abstract class Classifier {
             this.scope = scope;
         }
 
-
+        @Override
+        public String toString() {
+            return super.toString() + "DELIMITER: " + delimiterFactory.toString();
+        }
     }
 
     /**
@@ -485,6 +488,11 @@ abstract class Classifier {
             public void after() {
                 delimiter.onEndOfParent();
             }
+        }
+
+        @Override
+        public String toString() {
+            return super.toString() + "DELIMITER: " + delimiterFactory.toString();
         }
     }
 

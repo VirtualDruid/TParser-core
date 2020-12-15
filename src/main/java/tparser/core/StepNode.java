@@ -2,11 +2,15 @@ package tparser.core;
 
 import org.jsoup.nodes.Element;
 
+import java.util.concurrent.ThreadLocalRandom;
+
 /**
  * abstract functional node
- *
  */
+@SuppressWarnings("WeakerAccess")
 public abstract class StepNode extends Element {
+
+    public final long id = ThreadLocalRandom.current().nextLong();
 
     public StepNode(String tagName) {
         super(tagName);
@@ -44,6 +48,6 @@ public abstract class StepNode extends Element {
 
     @Override
     public String toString() {
-        throw new IllegalStateException("not override");
+        throw new IllegalStateException("should override");
     }
 }
