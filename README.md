@@ -14,7 +14,7 @@ allprojects {
 
 dependencies {
     //latest version
-    implementation 'com.github.VirtualDruid:TParser-core:933eefee24'
+    implementation 'com.github.VirtualDruid:TParser-core:master-SNAPSHOT'
     implementation 'com.github.VirtualDruid:TParser-delegate-jackson:master-SNAPSHOT'
     
     //dependency of jackson delegate
@@ -26,18 +26,60 @@ dependencies {
 
 ## How to use
 
-template file:
+1. write a template:
 ```html
-<!--parse packages info on https://mvnrepository.com/open-source-->
-<div id="page" x-select-in-subtree="true">
-    <div id="maincontent">
-        <json-array>
+<!--example of parsing packages info on https://mvnrepository.com/open-source-->
 
+<!--by default, it only select a element in children of its parent-->
+<!--use x-select-in-subtree="true" extension attr to make it select in subtree-->
+<div id="page" x-select-in-subtree="true">
+    
+    <div id="maincontent">
+        <!--use json-object or json-array for structuring result-->
+        <json-array>
+            
+            <!-- write a element the template should selected, it will create a default css-selector that match it-->
+            <!-- use 'x-' extension attr to combine default css-selector with another-->
+            
+            <!-- there are 3 combination-->
+            
+            <!-- 1. 'x-and-selector'                 : select elements match both default and another-->
+            <!-- 2. 'x-or-selector'                  : select elements match default or another -->
+            <!-- 3. 'x-overwrite-default-selector'   : select elements match only another(ignore default)-->
+            
             <div x-and-selector=":not([class])">
                 <h4 style="border-bottom: 1px solid gray; padding-bottom: 2px">
+                    
+                    <!-- use {<extractionPrefix>propertyName} on an element attr or text to extract it into result-->
+                    
+                    <!-- by default, attr with extraction is ignored and not considered a part of css-selector-->
+                    <!-- ex: <a href="{href}" rel="blank"> -> a[rel=blank] -->
+                    
+                    <!-- use '$' on attr extraction to make it a part of css-selector -->
+                    <!-- ex: <a href="${href}" rel="blank"> -> a[href][rel=blank] -->
+                    
+                    <!-- (own text) extraction prefixes: -->
+                    
+                    <!-- 1. {#propertyName} : extract text from this element as inner html  (subtree without self) -->
+                    <!-- 2. {'#propertyName} : extract text from element as full text  (with all text blocks but without html tags) -->
+                    <!-- 3. {*#propertyName} : extract text from element as outer html (subtree with self) -->
+                    <!-- 4. {!#proertyName} :  extract nothing  (for implementing custom text extraction)-->
+                    
+                    <!-- if a property is outside a structuring tag (json-array/json-object), a TemplateSyntaxError will be thrown -->
+                    
                     <a href="${categoryUrl}">{categoryName}</a>
-
-                    <b>[int]{/\((?&lt;artifactCount&gt;\d+)\)/}</b>
+                    
+                    <!--use regex to get named groups as json properties and convert it to specific type-->
+                    
+                    <!-- ['typeA','typeB'..] {/'regex with named groups'/} -->
+                    
+                    <!--use CDATA without html escape is possible-->
+                    <!CDATA[[
+                    
+                    [int]{/\((?<artifactCount>\d+)\)/}
+                    
+                    ]]>
+                    <!-- <b>[int]{/\((?&lt;artifactCount&gt;\d+)\)/}</b> -->
                 </h4>
                 <table width="100%">
                     <tbody>
@@ -62,7 +104,7 @@ template file:
                                 </td>
                                 <td style="width: 7em;">
                                 
-                                    <!--use custom converter to convert integer expression that has separator-->
+                                    <!--using custom converter to convert integer expression that has separator-->
                                     <a href="${usageListUrl}">[CommaSeparatorInt]{usageCount}</a>
                                     
                                 </td>
@@ -80,13 +122,18 @@ template file:
 in code:
 ```java
 //prepare json library support
+//a JsonDelegate is used to wrap libraries to operate json nodes 
+
 ObjectMapper objectMapper = new ObjectMapper();
 JsonDelegate<ObjectNode,ArrayNode> delegate = new JacksonDelegate(objectMapper);
 
-//prepare template
-Element templateSource = Jsoup.parse('template file', utf8, "", Parser.xmlParser());
+//load template file
 
-//register custom converter with type name on template
+Element templateSource = Jsoup.parse(templateFile, utf8, "", Parser.xmlParser());
+
+//templates are reusable and immutable, and can be concurrently shared
+//register custom converter with type name on template with a TemplateBuilder
+
 Template tparserTemplate = new TemplateBuilder(templateSource)
             .registerConverter("CommaSeparatorInt", new TextConverter<Integer>() {
                 @Override
