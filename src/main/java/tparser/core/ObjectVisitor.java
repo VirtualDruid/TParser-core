@@ -71,6 +71,7 @@ public class ObjectVisitor extends StructPlaceHolderVisitor {
                 state.delegate.putObjectNode(parentItems.get(i), this.name, currentItems.get(i));
             }
         }
+        state.elementGroupsStack.pop();
     }
 
     @Override
@@ -80,7 +81,8 @@ public class ObjectVisitor extends StructPlaceHolderVisitor {
 
     @Override
     public void onBuilderExiting() {
-        classifier.finish();
+
+//        classifier.finish();
     }
 
     @Override

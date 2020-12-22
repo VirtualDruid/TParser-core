@@ -52,11 +52,11 @@ abstract class Classifier {
     }
 
     protected abstract void onNullParent(ElementGroups groups, Element parent);
-
-    void finish() {
-        //lock to unmodifiable
-        classifications = Collections.unmodifiableList(classifications);
-    }
+//
+//    void finish() {
+//        //lock to unmodifiable
+//        classifications = Collections.unmodifiableList(classifications);
+//    }
 
     @Override
     public String toString() {

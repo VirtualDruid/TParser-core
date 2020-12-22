@@ -177,7 +177,10 @@ public class ArrayVisitor extends StructPlaceHolderVisitor {
         if (classifier instanceof ClassifierTemp) {
             classifier = ((ClassifierTemp) classifier).toArrayClassifier(container);
         }
-        classifier.finish();
+        if (classifier.classifications.isEmpty()){
+            throw new TemplateSyntaxError("array has no identifiable elements");
+        }
+//        classifier.finish();
     }
 
     @Override
