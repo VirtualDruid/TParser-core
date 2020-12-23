@@ -60,17 +60,28 @@ abstract class ExtractionProcessor {
         final <JO, JA> void process(ParseResult<JO, JA> state, Element element, int index)
                 throws HtmlParseException.RegexNotMatch {
 
-            String  extraction = preExtractor.extract(element);
-            Matcher matcher    = pattern.matcher(extraction);
-            boolean found      = matcher.find();
-            if (shouldFailNotMatch && !found) {
-                throw new HtmlParseException.RegexNotMatch(String.format("pattern: %s not match", pattern.toString()));
+//            String  extraction = preExtractor.extract(element);
+//            Matcher matcher    = pattern.matcher(extraction);
+//            boolean found      = matcher.find();
+//            if (shouldFailNotMatch && !found) {
+//                throw new HtmlParseException.RegexNotMatch(String.format("pattern: %s not match", pattern.toString()));
+//            }
+            final boolean isElementNull = NullWrapper.isNullRepresent(element);
+            String        extraction    = null;
+            boolean       found         = false;
+            Matcher       matcher       = null;
+            if (!isElementNull) {
+                extraction = preExtractor.extract(element);
+                matcher = pattern.matcher(extraction);
+                found = matcher.find();
+                if (shouldFailNotMatch && !found) {
+                    throw new HtmlParseException.RegexNotMatch(String.format("pattern: %s not match", pattern.toString()));
+                }
             }
-            boolean isNull     = NullWrapper.isNullRepresent(element);
-            boolean shouldNull = !found || isNull;
+            boolean shouldNull = extraction == null || !found;
             for (TypeProcessor processor : typeProcessors) {
                 String result = shouldNull ? null : matcher.group(processor.property);
-                processor.process(state, result, isNull ? null : element, index);
+                processor.process(state, result, isElementNull ? null : element, index);
             }
         }
 
