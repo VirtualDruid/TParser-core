@@ -6,6 +6,7 @@ import com.google.code.regexp.Pattern;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.PatternSyntaxException;
 
 
 class IdentifierHelper {
@@ -36,11 +37,11 @@ class IdentifierHelper {
 
     // ^!?\.*\$
     private static final Pattern PATTERN_REGEX_ANNOTATION = Pattern.compile("^(?<shouldFailNotMatch>!?)/(?<actualRegex>.*)/$");
-    private static final String  GROUP_PROPERTY           = "property";
+    //    private static final String  GROUP_PROPERTY           = "property";
     private static final String  GROUP_TYPES              = "types";
 
     // ^(#|\*#|'#)?(.*)$
-    private static final Pattern PATTERN_ACTUAL_IDENTIFIER = Pattern.compile("^((#)|(\\*#)|('#))?(?<property>.*)$");
+//    private static final Pattern PATTERN_ACTUAL_IDENTIFIER = Pattern.compile("^((#)|(\\*#)|('#))?(?<property>.*)$");
 
     // ^\s\[(.*)\]$
     private static final Pattern PATTERN_ARRAY_LITERAL = Pattern.compile("^\\s*\\[(?<items>.*)\\]\\s*$");
@@ -63,35 +64,41 @@ class IdentifierHelper {
         return matchIdentifier.group(GROUP_IDENTIFIER).trim();
     }
 
+    /**
+     * check is regex
+     */
     private static Matcher matchRegexAnnotation(String identifier) {
         return PATTERN_REGEX_ANNOTATION.matcher(identifier);
     }
 
-    private static String getPropertyName(String simpleIdentifier) {
+    /**
+     * get property (string or regex) without extraction annotation
+     */
+    private static String getProperty(String identifier) {
 //        Matcher matcher = PATTERN_ACTUAL_IDENTIFIER.matcher(simpleIdentifier);
 //        matcher.matches();
 //        return matcher.group(GROUP_PROPERTY);
 //        String property;
-        if (isInnerHtml(simpleIdentifier)) {
+        if (isInnerHtml(identifier)) {
 
             //#
-            return simpleIdentifier.substring(1);
-        } else if (isOuterHtml(simpleIdentifier)) {
+            return identifier.substring(1);
+        } else if (isOuterHtml(identifier)) {
 
             //*#
-            return simpleIdentifier.substring(2);
-        } else if (isFullText(simpleIdentifier)) {
+            return identifier.substring(2);
+        } else if (isFullText(identifier)) {
 
             //'#
-            return simpleIdentifier.substring(2);
-        } else if (isNone(simpleIdentifier)) {
+            return identifier.substring(2);
+        } else if (isNone(identifier)) {
 
             //!#
-            return simpleIdentifier.substring(2);
+            return identifier.substring(2);
         } else {
 
             //own text
-            return simpleIdentifier;
+            return identifier;
         }
     }
 
@@ -213,12 +220,19 @@ class IdentifierHelper {
             TextExtractor extractor,
             ConverterFactory factory) {
 
-        String   identifier = getActualIdentifier(matchIdentifier);
-        Matcher  matchRegex = matchRegexAnnotation(identifier);
+        String identifier = getActualIdentifier(matchIdentifier);
+        //can be regex or simple
+        String   property   = getProperty(identifier);
+        Matcher  matchRegex = matchRegexAnnotation(property);
         boolean  isRegex    = matchRegex.matches();
         String[] types      = hasTypes(matchIdentifier) ? parseArray(getTypeArrayLiteral(matchIdentifier)) : new String[0];
         if (isRegex) {
-            com.google.code.regexp.Pattern regex = Pattern.compile(getActualRegex(matchRegex));
+            com.google.code.regexp.Pattern regex;
+            try {
+                regex = Pattern.compile(getActualRegex(matchRegex));
+            } catch (PatternSyntaxException e) {
+                throw new TemplateSyntaxError("pattern syntax error", e);
+            }
 
             List<String> groupNames = regex.groupNames();
             checkTypePropertiesRange(types.length, groupNames.size());
@@ -238,9 +252,9 @@ class IdentifierHelper {
         } else {
             checkTypePropertiesRange(types.length, 1);
             String type = types.length == 0 ? Converters.defaultConverterType() : types[0];
-            structure.addProperty(identifier);
+            structure.addProperty(property);
             Converter converter = createAndValidateConverter(factory, type);
-            String    property  = getPropertyName(identifier);
+//            String    property  = getProperty(identifier);
             return new ExtractionProcessor.SimpleProcessor(extractor, new TypeProcessor(structure, property, converter, type));
         }
 
