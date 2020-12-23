@@ -141,7 +141,7 @@ abstract class Classifier {
             for (int i = 0, evaluatorSize = classifications.size(); i < evaluatorSize; i++) {
                 Evaluator                     evaluator = classifications.get(i);
                 DOMSearchMethod.FirstSelector selector  = selectors.get(i);
-                Element                       element   = selector.select(nonNull, evaluator);
+                Element                       element   = NullWrapper.wrapNullElement(selector.select(nonNull, evaluator), nonNull);
                 if (i == 0) {
                     groups.onShouldNewGroup(nonNull, element, evaluator);
                 } else {
