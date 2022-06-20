@@ -1,5 +1,20 @@
 # TParser-core
 
+TParser is a simple spider/crawler middleware built on top of **Jsoup** that **extracts and structures data (as JSON)** from DOM tree by simply define a template file without writing boilerplate parser code.
+
+## Features
+
+1. Extract text as object property/field via **Named Regex Groups**.
+
+2. Structure extracted data as any level of nested objects, arrays.
+
+3. Convert text/element to any type, with extendable converters.
+
+4. Output data as any format by implementing **JSONDelegate**.
+
+5. Automatic Null-Proof whenever target element is missing, 
+and you may use **x-required** or **x-fail-if-found** to quick fail parsing unexpected htmls' content.
+
 
 **Download: via Jitpack**
 ```groovy
@@ -135,7 +150,7 @@ Element templateSource = Jsoup.parse(templateFile, utf8, "", Parser.xmlParser())
 //register custom converter with type name on template with a TemplateBuilder
 
 Template tparserTemplate = new TemplateBuilder(templateSource)
-            .registerConverter("CommaSeparatorInt", new TextConverter<Integer>() {
+            .registerConverter("CommaSeparatorInt", new Converter<Integer>() {
                 @Override
                 public Integer convert(String text, Element contextElement){
                   return Integer.valueOf(text.replace(",",""))
@@ -151,7 +166,7 @@ print(objectMapper.writeValueAsString(jsonResult))
 
 ```
 
-output result:
+test output result:
 ```json
 
 [
@@ -188,5 +203,40 @@ output result:
       ]
     }, ......
 ]
+```
+
+a hand-written bolierplate parser code in comparison (without null-proof):
+
+https://gist.github.com/VirtualDruid/4e8c5c91f1cd8352174ba656bae1dc8f
+
+## Extending Template Functionality
+
+### Custom Data Converters
+Implement **Converter** and register it to **TemplateBuilder** to parse specific text/element format
+
+### Custom output format
+Implement **JSONDelegate** to support other JSON lib or any other format (like XML, CSV)
+
+## Limitation
+
+1. **\<json-array\>** tag does not support JSON primitive array (string array, number array), all items are JSON objects.
+To use primitive in your template, use **!#** with custom **Converter** that converts DOM element to primitive JSON array.
+
+2. All **\<json-array\>** or **\<json-object\>** tags must have at least one **Selectable element** or a **TemplateSyntaxException** is thrown due to how TParser internally works
+
+**Example:**
+
+```html
+<!--not allowed-->
+
+<json-object>
+
+<!--no element to be selected-->
+
+    <json-object name="nested">
+        <a/>
+    </json-object>
+
+</json-object>
 
 ```
