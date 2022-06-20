@@ -150,7 +150,7 @@ Element templateSource = Jsoup.parse(templateFile, utf8, "", Parser.xmlParser())
 //register custom converter with type name on template with a TemplateBuilder
 
 Template tparserTemplate = new TemplateBuilder(templateSource)
-            .registerConverter("CommaSeparatorInt", new Converter<Integer>() {
+            .registerConverter("CommaSeparatorInt", new TextConverter<Integer>() {
                 @Override
                 public Integer convert(String text, Element contextElement){
                   return Integer.valueOf(text.replace(",",""))
@@ -214,8 +214,13 @@ https://gist.github.com/VirtualDruid/4e8c5c91f1cd8352174ba656bae1dc8f
 ### Custom Data Converters
 Implement **Converter** and register it to **TemplateBuilder** to parse specific text/element format
 
+Example converter of element with spans (text styles) as JSON object : 
+
+https://gist.github.com/VirtualDruid/03f86a6aca7a3a766a084332dd1b4741
+
 ### Custom output format
 Implement **JSONDelegate** to support other JSON lib or any other format (like XML, CSV)
+
 
 ## Limitation
 
