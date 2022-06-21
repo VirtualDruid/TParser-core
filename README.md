@@ -16,6 +16,11 @@ TParser is a simple spider/crawler middleware built on top of **Jsoup** that **e
 and you may use **x-required** or **x-fail-if-found** to quick fail parsing unexpected htmls' content.
 
 
+## Dependency
+1. Jsoup (MIT licesed, included in Jitpack build)
+2. named-regexp By tony19 (Apache lisenced, included in Jitpack build): 
+support getting names from named regex groups in JDK <= 1.8 without using reflection
+
 **Download: via Jitpack**
 ```groovy
 allprojects {
