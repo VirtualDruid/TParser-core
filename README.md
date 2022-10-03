@@ -250,3 +250,7 @@ To use primitive in your template, use **!#** with custom **Converter** that con
 </json-object>
 
 ```
+
+## Copyright
+
+All Copyright reserved.
